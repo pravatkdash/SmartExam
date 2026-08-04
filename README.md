@@ -22,3 +22,27 @@ AI-powered Online Examination Platform built with Django.
 - Django
 - PostgreSQL
 - AWS
+
+Sprint 1 ✅
+Accounts
+
+Sprint 2 ✅
+Subjects
+
+Sprint 3 ✅
+Question Bank
+
+Sprint 4 ⏳
+Assessment
+
+Sprint 5
+Excel Import
+
+Sprint 6
+Automatic Question Generation
+
+Sprint 7
+Student Test Module
+
+Sprint 8
+Result & Analytics
