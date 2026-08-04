@@ -84,4 +84,4 @@ class Chapter(BaseModel):
         verbose_name_plural = "Chapters"
 
     def __str__(self):
-        return f"{self.subject.name} - {self.name}"
+        return f"{self.subject.name} → {self.name}"
