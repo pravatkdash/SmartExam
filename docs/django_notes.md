@@ -25,3 +25,18 @@ AssessmentQuestionAdmin
 -----------------------
 assessment__name
 question__question_text
+
+## ModelForm clean()
+
+`clean()` is used for cross-field validation.
+
+Example:
+
+```python
+cleaned_data = {
+    "exam": <Exam: NEET>,
+    "name": "Biology Mock Test 1",
+    "duration_minutes": 60,
+    "status": "DRAFT",
+    "is_active": True,
+}

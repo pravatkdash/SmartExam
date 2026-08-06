@@ -20,10 +20,6 @@ class AssessmentAdmin(admin.ModelAdmin):
     )
 
 
-    exclude = (
-        "created_by",
-    )
-
     search_fields = (
         "name",
         "exam__name",
@@ -33,6 +29,33 @@ class AssessmentAdmin(admin.ModelAdmin):
         "exam",
         "status",
         "is_active",
+    )
+
+    fieldsets = (
+        (
+            "Assessment Information",
+            {
+                "fields": (
+                    "exam",
+                    "name",
+                    "description",
+                ),
+            },
+        ),
+        (
+            "Configuration",
+            {
+                "fields": (
+                    "duration_minutes",
+                    "status",
+                    "is_active",
+                ),
+            },
+        ),
+    )
+
+    exclude = (
+        "created_by",
     )
 
     def save_model(self, request, obj, form, change):
