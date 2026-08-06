@@ -1,6 +1,8 @@
 from django import forms
+from django.forms import BaseInlineFormSet
 
 from .models import Assessment, AssessmentStatus
+
 
 
 class AssessmentAdminForm(forms.ModelForm):
@@ -40,3 +42,20 @@ class AssessmentAdminForm(forms.ModelForm):
             )
 
         return cleaned_data
+
+
+class AssessmentQuestionInlineFormSet(BaseInlineFormSet):
+
+    def save(self, commit=True):
+        instances = super().save(commit=False)
+
+        for index, instance in enumerate(instances, start=1):
+            instance.display_order = index
+
+        if commit:
+            for instance in instances:
+                instance.save()
+
+            self.save_m2m()
+
+        return instances

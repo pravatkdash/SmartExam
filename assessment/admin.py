@@ -1,10 +1,29 @@
 from django.contrib import admin
 
-from assessment.models import Assessment
-from .admin_forms import AssessmentAdminForm
+from assessment.models import Assessment, AssessmentQuestion
+from .admin_forms import AssessmentAdminForm, AssessmentQuestionInlineFormSet
 
 
 # Register your models here.
+
+class AssessmentQuestionInline(admin.TabularInline):
+    model = AssessmentQuestion
+    formset = AssessmentQuestionInlineFormSet
+
+    exclude = (
+        "is_active",
+        "display_order",
+    )
+
+
+@admin.register(AssessmentQuestion)
+class AssessmentQuestionAdmin(admin.ModelAdmin):
+    list_display = (
+        "assessment",
+        "display_order",
+        "question",
+    )
+
 
 
 @admin.register(Assessment)
@@ -53,6 +72,10 @@ class AssessmentAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+    inlines = [
+        AssessmentQuestionInline,
+    ]
 
     exclude = (
         "created_by",

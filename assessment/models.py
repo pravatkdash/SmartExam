@@ -3,11 +3,13 @@ from django.db import models
 
 from common.models import BaseModel
 from subjects.models import Exam
+from questions.models import Question
 
 
 class AssessmentStatus(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
     PUBLISHED = "PUBLISHED", "Published"
+
 
 class Assessment(BaseModel):
     exam = models.ForeignKey(
@@ -62,3 +64,43 @@ class Assessment(BaseModel):
 
     def __str__(self):
         return f"{self.exam} → {self.name}"
+
+
+class AssessmentQuestion(BaseModel):
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name="assessment_questions",
+    )
+
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        related_name="assessment_questions",
+    )
+
+    display_order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = [
+            "assessment",
+            "display_order",
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "assessment",
+                    "question",
+                ],
+                name="unique_question_per_assessment",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "assessment",
+                    "display_order",
+                ],
+                name="unique_display_order_per_assessment",
+            ),
+        ]
+
