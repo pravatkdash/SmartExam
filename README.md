@@ -46,3 +46,10 @@ Student Test Module
 
 Sprint 8
 Result & Analytics
+
+| Student   | Mobile | Email    | Login        |
+| --------- | ------ | -------- | ------------ |
+| Student A | ✅      | optional | Mobile + PIN |
+| Student B | ❌      | ✅        | Email + PIN  |
+| Student C | ✅      | ✅        | Mobile + PIN |
+| Student D | ❌      | ❌        | ❌ Invalid    |
