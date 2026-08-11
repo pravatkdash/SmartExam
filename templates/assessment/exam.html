@@ -1,0 +1,88 @@
+<form method="post">
+
+    {% csrf_token %}
+
+    <p>
+        Question {{ question_number }} of {{ total_questions }}
+    </p>
+
+    <h4>
+        {{ attempt_question.question.question_text }}
+    </h4>
+
+    {% for option in options %}
+
+        <div class="form-check mb-3">
+
+            <input
+                class="form-check-input"
+                type="{% if attempt_question.question.is_multiple_answer %}checkbox{% else %}radio{% endif %}"
+                name="answers"
+                value="{{ option.id }}"
+                id="option{{ option.id }}"
+
+                {% if option in student_answer.selected_options.all %}
+                    checked
+                {% endif %}
+            >
+
+            <label
+                class="form-check-label"
+                for="option{{ option.id }}"
+            >
+                {{ option.option_text }}
+            </label>
+
+        </div>
+
+    {% endfor %}
+
+    <hr>
+
+    <div class="d-flex justify-content-between">
+
+        {% if question_number > 1 %}
+
+            <button
+                type="submit"
+                name="navigation"
+                value="previous"
+                class="btn btn-secondary"
+            >
+                ← Previous
+            </button>
+
+        {% else %}
+
+            <span></span>
+
+        {% endif %}
+
+
+        {% if question_number < total_questions %}
+
+            <button
+                type="submit"
+                name="navigation"
+                value="next"
+                class="btn btn-primary"
+            >
+                Next →
+            </button>
+
+        {% else %}
+
+            <button
+                type="submit"
+                name="navigation"
+                value="submit"
+                class="btn btn-success"
+            >
+                Submit Exam
+            </button>
+
+        {% endif %}
+
+    </div>
+
+</form>

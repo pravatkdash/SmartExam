@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2>{{ assessment.name }}</h2>
+
+    <p>
+        <strong>Exam:</strong>
+        {{ assessment.exam.name }}
+    </p>
+
+    <p>
+        <strong>Duration:</strong>
+        {{ assessment.duration_minutes }} minutes
+    </p>
+
+    <p>
+        <strong>Total Questions:</strong>
+        {{ assessment.assessment_questions.count }}
+    </p>
+
+    {% if assessment.description %}
+        <p>
+            <strong>Description:</strong>
+            {{ assessment.description }}
+        </p>
+    {% endif %}
+
+    <hr>
+
+    <h3>Instructions</h3>
+
+    <ul>
+        <li>Once you start the assessment, the timer will begin.</li>
+        <li>You must complete the assessment within the given time.</li>
+        <li>Do not refresh or close the browser during the assessment.</li>
+        <li>Each question will be displayed one at a time.</li>
+    </ul>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <button type="submit">
+            Start Exam
+        </button>
+    </form>
+
+</div>
+
+{% endblock %}

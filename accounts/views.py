@@ -1,4 +1,5 @@
 from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 # Create your views here.
@@ -13,6 +14,7 @@ from accounts.registration_service import register_student
 from accounts.student_login_forms import StudentLoginForm
 from accounts.student_login_service import authenticate_student
 from accounts.student_registration_forms import StudentRegistrationForm
+from assessment.models import Assessment, AssessmentAttempt, AssessmentAttemptStatus
 
 
 def home(request):
@@ -158,16 +160,48 @@ def student_login(request):
     )
 
 
+
+@login_required
 def student_dashboard(request):
-    if not request.user.is_authenticated:
-        return redirect("student_login")
 
     if request.user.user_type != UserType.STUDENT:
         return redirect("home")
 
+    assessments = Assessment.objects.filter(
+        status="PUBLISHED",
+        is_active=True,
+    ).order_by("name")
+
+    for assessment in assessments:
+
+        assessment.current_attempt = (
+            AssessmentAttempt.objects
+            .filter(
+                student=request.user,
+                assessment=assessment,
+                status=AssessmentAttemptStatus.IN_PROGRESS,
+            )
+            .order_by("-started_at")
+            .first()
+        )
+
+        assessment.last_submitted_attempt = (
+            AssessmentAttempt.objects
+            .filter(
+                student=request.user,
+                assessment=assessment,
+                status=AssessmentAttemptStatus.SUBMITTED,
+            )
+            .order_by("-submitted_at")
+            .first()
+        )
+
     return render(
         request,
         "accounts/student_dashboard.html",
+        {
+            "assessments": assessments,
+        },
     )
 
 

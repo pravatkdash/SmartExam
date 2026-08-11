@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card">
+
+        <div class="card-body text-center">
+
+            <h2>{{ attempt.assessment.name }}</h2>
+
+            <hr>
+
+            <h4>Assessment Result</h4>
+
+            <div class="mt-4">
+
+                <h1>
+                    {{ attempt.score }}
+                </h1>
+
+                <p>
+                    Score
+                </p>
+
+            </div>
+
+            <div class="mt-4">
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ attempt.get_status_display }}
+                </p>
+
+                <p>
+                    <strong>Submitted At:</strong>
+                    {{ attempt.submitted_at }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
