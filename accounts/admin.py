@@ -13,9 +13,11 @@ class CustomUserAdmin(UserAdmin):
         "first_name",
         "last_name",
         "user_type",
+        "mobile_verified",
         "is_staff",
         "is_active",
     )
+
 
     fieldsets = UserAdmin.fieldsets + (
         (
@@ -23,18 +25,21 @@ class CustomUserAdmin(UserAdmin):
             {
                 "fields": (
                     "mobile_number",
+                    "mobile_verified",
                     "user_type",
                 )
             },
         ),
     )
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
+    add_fieldsets = (
         (
             None,
             {
                 "fields": (
                     "email",
+                    "password1",
+                    "password2",
                     "mobile_number",
                     "first_name",
                     "last_name",

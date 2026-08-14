@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <h1>Complete Registration</h1>
+
+    <p>Your mobile number has been verified.</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">Create Account</button>
+    </form>
+</div>
+{% endblock %}

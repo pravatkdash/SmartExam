@@ -1,0 +1,78 @@
+Final Phase 9 prompt
+
+Are we accidentally expanding V1?
+
+This is probably the most important one.
+
+Looking at everything we've discussed, I see a few things we should explicitly protect from scope creep.
+
+V1 should remain:
+
+Institute
+
+Institute management
+Programs
+Subjects
+Chapters
+
+Users
+
+Super Admin
+Institute Admin
+Teacher
+Student
+
+Teacher
+
+Assigned Subjects
+Create Questions
+Create Assessments
+Submit Assessment for Admin review
+
+Question types
+
+Single Choice
+Multiple Answer
+True/False
+
+Assessment
+
+Admin approval
+Published/immutable
+Duration
+Same marks per question
+No negative marking
+Random question order
+Multiple attempts
+Automatic submission on timeout
+
+Student
+
+Program enrollment
+View available assessments
+Take assessments
+Immediate score
+Previous results
+
+Results
+
+Attempt summary
+Score
+Start/completion time
+Result history
+Explicitly NOT V1
+❌ Individual question marks
+❌ Partial marking
+❌ Negative marking
+❌ Random options
+❌ Different question sets per student
+❌ Assessment sections
+❌ Availability windows
+❌ Resume after browser close
+❌ Detailed answer history
+❌ Multiple teachers per Subject
+❌ Teacher + Admin dual role
+❌ Complex analytics
+❌ Advanced reporting
+❌ Notifications
+❌ Payment/subscription system

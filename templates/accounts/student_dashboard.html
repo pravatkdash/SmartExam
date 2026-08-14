@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <h1>Welcome, {{ request.user.first_name }}!</h1>
+
+    <p>You are successfully logged in to SmartExam.</p>
+
+    <p>
+        Mobile: {{ request.user.mobile_number }}
+    </p>
+
+    <div class="container mt-5">
+
+    <h2 class="mb-4">Available Assessments</h2>
+
+    <div class="row">
+
+        {% for assessment in assessments %}
+
+            <div class="col-md-6 mb-4">
+
+                <div class="card h-100">
+
+                    <div class="card-body">
+
+                        <h4 class="card-title">
+                            {{ assessment.name }}
+                        </h4>
+
+                        <p class="card-text">
+                            Duration:
+                            {{ assessment.duration_minutes }} minutes
+                        </p>
+
+                        <p class="card-text">
+                            Questions:
+                            {{ assessment.assessment_questions.count }}
+                        </p>
+
+                        {% if assessment.current_attempt %}
+
+                            <a
+                                href="{% url 'assessment_exam' assessment.current_attempt.id 1 %}"
+                                class="btn btn-warning"
+                            >
+                                Continue Assessment
+                            </a>
+
+                        {% else %}
+
+                            <a
+                                href="{% url 'start_assessment' assessment.id %}"
+                                class="btn btn-primary"
+                            >
+                                Start Assessment
+                            </a>
+
+                        {% endif %}
+
+                        {% if assessment.last_submitted_attempt %}
+
+                            <div class="mt-3">
+
+                                <p class="mb-1">
+                                    <strong>Last Result</strong>
+                                </p>
+
+                                <p class="mb-1">
+                                    Score:
+                                    {{ assessment.last_submitted_attempt.score }}
+                                </p>
+
+                                <p class="mb-2">
+                                    Submitted:
+                                    {{ assessment.last_submitted_attempt.submitted_at|date:"d M Y, h:i A" }}
+                                </p>
+
+                                <a
+                                    href="{% url 'assessment_result' assessment.last_submitted_attempt.id %}"
+                                    class="btn btn-outline-success btn-sm"
+                                >
+                                    View Result
+                                </a>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="alert alert-info">
+                No assessments are currently available.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+
+
+<a href="{% url 'student_logout' %}">
+    Logout
+</a>

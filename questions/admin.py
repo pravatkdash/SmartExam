@@ -1,9 +1,11 @@
 from django import forms
-from django.contrib import admin
-from django.db import models
+from django.contrib import admin, messages
+from django.db import models, transaction
+
 
 from .models import Question, Option
 from .admin_forms import QuestionAdminForm, OptionInlineFormSet, OptionAdminForm
+from .question_service import is_question_locked, get_question_lock_message
 
 
 class OptionInline(admin.TabularInline):
@@ -35,6 +37,23 @@ class OptionInline(admin.TabularInline):
             )
         }
     }
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and is_question_locked(obj):
+            return (
+                "question",
+                "option_text",
+                "is_correct",
+                "display_order",
+            )
+
+        return ()
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and is_question_locked(obj):
+            return False
+
+        return super().has_delete_permission(request, obj)
 
 
 @admin.register(Question)
@@ -126,20 +145,132 @@ class QuestionAdmin(admin.ModelAdmin):
 
         return fieldsets
 
+
     def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
 
-        for obj in formset.deleted_objects:
-            obj.delete()
+        with transaction.atomic():
 
-        order = 1
+            # Let Django prepare the formset.
+            # This also populates formset.deleted_objects.
+            instances = formset.save(commit=False)
 
-        for instance in instances:
-            instance.display_order = order
-            instance.save()
-            order += 1
+            # Delete options marked for deletion
+            for obj in formset.deleted_objects:
+                obj.delete()
 
-        formset.save_m2m()
+            question = form.instance
+
+            # --------------------------------------------------
+            # STEP 1: Get ALL remaining options in form order
+            # --------------------------------------------------
+
+            options = []
+
+            for inline_form in formset.forms:
+
+                if not inline_form.cleaned_data:
+                    continue
+
+                if inline_form.cleaned_data.get("DELETE", False):
+                    continue
+
+                option = inline_form.instance
+
+                # Ignore empty extra forms
+                if not option.option_text:
+                    continue
+
+                options.append(option)
+
+            # --------------------------------------------------
+            # STEP 2: Move existing options to temporary orders
+            # --------------------------------------------------
+
+            existing_options = list(
+                question.options.all()
+            )
+
+            max_order = (
+                    question.options.aggregate(
+                        max_order=models.Max("display_order")
+                    )["max_order"]
+                    or 0
+            )
+
+            temp_order = max_order + 1
+
+            for option in existing_options:
+                option.display_order = temp_order
+                option.save(update_fields=["display_order"])
+                temp_order += 1
+
+            # --------------------------------------------------
+            # STEP 3: Save new options with temporary orders
+            # --------------------------------------------------
+
+            for instance in instances:
+                # Only new/changed instances are returned here
+                instance.display_order = temp_order
+                instance.save()
+                temp_order += 1
+
+            # --------------------------------------------------
+            # STEP 4: Assign final display order
+            # --------------------------------------------------
+
+            for order, option in enumerate(options, start=1):
+                option.display_order = order
+                option.save(
+                    update_fields=["display_order"]
+                )
+
+            formset.save_m2m()
+
+
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(super().get_readonly_fields(request, obj))
+
+        if obj and is_question_locked(obj):
+            readonly_fields.extend([
+                "chapter",
+                "question_text",
+                "explanation",
+                "difficulty",
+                "marks",
+                "negative_marks",
+                "is_multiple_answer",
+            ])
+
+        return tuple(readonly_fields)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and is_question_locked(obj):
+            return False
+
+        return super().has_delete_permission(request, obj)
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        try:
+            obj = self.get_object(request, object_id)
+
+            if obj and is_question_locked(obj):
+                message = get_question_lock_message(obj)
+
+                messages.warning(
+                    request,
+                    f"🔒 Question Locked: {message}"
+                )
+
+        except Exception:
+            pass
+
+        return super().change_view(
+            request,
+            object_id,
+            form_url,
+            extra_context,
+        )
 
 
 @admin.register(Option)
@@ -151,3 +282,27 @@ class OptionAdmin(admin.ModelAdmin):
         "option_text",
         "is_correct",
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(
+            super().get_readonly_fields(request, obj)
+        )
+
+        if obj and is_question_locked(obj):
+            readonly_fields.extend([
+                "chapter",
+                "question_text",
+                "explanation",
+                "difficulty",
+                "marks",
+                "negative_marks",
+                "is_multiple_answer",
+            ])
+
+        return tuple(readonly_fields)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and is_question_locked(obj.question):
+            return False
+
+        return super().has_delete_permission(request, obj)
