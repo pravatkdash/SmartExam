@@ -57,6 +57,7 @@ Can:
 Soft deactivation is preferred over destructive deletion.
 
 ## But importantly, Institute Admin is a User, while Institute is an organization/entity.
+## Institute self-registration → first Institute Admin details → PENDING → Super Admin approval/rejection → Institute + first Institute Admin become active.
 ## 4. Teacher
 
 Teacher is primarily a **content creator**.

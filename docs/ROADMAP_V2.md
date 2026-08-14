@@ -13,3 +13,4 @@
 - [ ] Scheduled Assessments
 - [ ] Multiple Attempts
 - [ ] Negative Marking Rules
+- [ ] state-wise exam ecosystem as V2/V3 — not part of V1
