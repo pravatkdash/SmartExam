@@ -47,7 +47,7 @@ class Question(BaseModel):
 
     class Meta:
         ordering = [
-            "chapter__subject__exam__name",
+            "chapter__subject__program__name",
             "chapter__subject__name",
             "chapter__name",
         ]

@@ -1,27 +1,14 @@
 from django.contrib import admin
 
-from .models import Exam, Subject, Chapter
+from .models import Institute, Program, Subject, Chapter
 
 
-@admin.register(Exam)
-class ExamAdmin(admin.ModelAdmin):
+@admin.register(Institute)
+class InstituteAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "is_active",
         "created_at",
-    )
-
-    search_fields = ("name",)
-
-    list_filter = ("is_active",)
-
-
-@admin.register(Subject)
-class SubjectAdmin(admin.ModelAdmin):
-    list_display = (
-        "name",
-        "exam",
-        "is_active",
     )
 
     search_fields = (
@@ -29,7 +16,47 @@ class SubjectAdmin(admin.ModelAdmin):
     )
 
     list_filter = (
-        "exam",
+        "is_active",
+    )
+
+
+@admin.register(Program)
+class ProgramAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "institute",
+        "is_active",
+        "created_at",
+    )
+
+    search_fields = (
+        "name",
+        "institute__name",
+    )
+
+    list_filter = (
+        "institute",
+        "is_active",
+    )
+
+
+@admin.register(Subject)
+class SubjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "program",
+        "is_active",
+        "created_at",
+    )
+
+    search_fields = (
+        "name",
+        "program__name",
+        "program__institute__name",
+    )
+
+    list_filter = (
+        "program",
         "is_active",
     )
 
@@ -40,10 +67,13 @@ class ChapterAdmin(admin.ModelAdmin):
         "name",
         "subject",
         "is_active",
+        "created_at",
     )
 
     search_fields = (
         "name",
+        "subject__name",
+        "subject__program__name",
     )
 
     list_filter = (

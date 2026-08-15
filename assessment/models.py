@@ -2,7 +2,6 @@ from django.conf import settings
 from django.db import models
 
 from common.models import BaseModel
-from subjects.models import Exam
 from questions.models import Question, Option
 
 
@@ -12,9 +11,9 @@ class AssessmentStatus(models.TextChoices):
 
 
 class Assessment(BaseModel):
-    exam = models.ForeignKey(
-        Exam,
-        on_delete=models.CASCADE,
+    subject = models.ForeignKey(
+        "subjects.Subject",
+        on_delete=models.PROTECT,
         related_name="assessments",
     )
 
@@ -35,10 +34,6 @@ class Assessment(BaseModel):
         default=AssessmentStatus.DRAFT,
     )
 
-    is_active = models.BooleanField(
-        default=False,
-    )
-
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -47,7 +42,7 @@ class Assessment(BaseModel):
 
     class Meta:
         ordering = [
-            "exam",
+            "subject",
             "name",
         ]
 
@@ -55,15 +50,15 @@ class Assessment(BaseModel):
             models.UniqueConstraint(
                 fields=[
                     "created_by",
-                    "exam",
+                    "subject",
                     "name",
                 ],
-                name="unique_assessment_name_per_teacher_per_exam",
+                name="unique_assessment_name_per_teacher_per_subject",
             )
         ]
 
     def __str__(self):
-        return f"{self.exam} → {self.name}"
+        return f"{self.subject} → {self.name}"
 
 
 class AssessmentQuestion(BaseModel):
