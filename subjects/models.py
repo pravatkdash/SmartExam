@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from common.models import BaseModel
@@ -75,6 +77,39 @@ class Subject(BaseModel):
 
     def __str__(self):
         return f"{self.program.name} - {self.name}"
+
+
+class TeacherAssignment(BaseModel):
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="teacher_assignments",
+    )
+
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.PROTECT,
+        related_name="teacher_assignments",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["teacher", "subject"],
+                name="unique_teacher_assignment_per_subject",
+            )
+        ]
+        verbose_name = "Teacher Assignment"
+        verbose_name_plural = "Teacher Assignments"
+
+    def clean(self):
+        if self.teacher and self.teacher.user_type != "TEACHER":
+            raise ValidationError(
+                "Only users with the Teacher role can be assigned to a subject."
+            )
+
+    def __str__(self):
+        return f"{self.teacher} → {self.subject}"
 
 
 class Chapter(BaseModel):
