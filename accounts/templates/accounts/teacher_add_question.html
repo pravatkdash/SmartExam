@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Question - SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2>Add Question</h2>
+
+    <p>
+        <strong>Subject:</strong> {{ subject.name }}
+    </p>
+
+    <p>
+        <strong>Chapter:</strong> {{ chapter.name }}
+    </p>
+
+    <hr>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        {{ question_form.non_field_errors }}
+
+        <div class="mb-3">
+            {{ question_form.question_text.label_tag }}
+            {{ question_form.question_text }}
+            {{ question_form.question_text.errors }}
+        </div>
+
+        <div class="mb-3">
+            {{ question_form.explanation.label_tag }}
+            {{ question_form.explanation }}
+            {{ question_form.explanation.errors }}
+        </div>
+
+        <div class="mb-3">
+            {{ question_form.difficulty.label_tag }}
+            {{ question_form.difficulty }}
+            {{ question_form.difficulty.errors }}
+        </div>
+
+        <div class="mb-3">
+            {{ question_form.marks.label_tag }}
+            {{ question_form.marks }}
+            {{ question_form.marks.errors }}
+        </div>
+
+        <div class="mb-3">
+            {{ question_form.negative_marks.label_tag }}
+            {{ question_form.negative_marks }}
+            {{ question_form.negative_marks.errors }}
+        </div>
+
+        <div class="mb-3">
+            {{ question_form.is_multiple_answer }}
+            {{ question_form.is_multiple_answer.label_tag }}
+            {{ question_form.is_multiple_answer.errors }}
+        </div>
+
+        <hr>
+
+        <h4>Options</h4>
+
+        {{ question_formset.management_form }}
+
+        {{ question_formset.non_form_errors }}
+
+        {% for form in question_formset %}
+
+            <div class="mb-3">
+
+                {{ form.option_text.label_tag }}
+                {{ form.option_text }}
+
+                <div class="mt-2">
+                    {{ form.is_correct }}
+                    {{ form.is_correct.label_tag }}
+                </div>
+
+                {{ form.errors }}
+
+            </div>
+
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">
+            Save Question
+        </button>
+
+        <a
+            href="{% url 'teacher_subject_chapters' subject.id %}"
+            class="btn btn-secondary"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

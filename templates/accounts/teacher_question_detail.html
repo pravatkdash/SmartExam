@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}
+Question Details - SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h1>Question Details</h1>
+
+    <p>
+        <strong>Subject:</strong> {{ subject.name }}
+    </p>
+
+    <p>
+        <strong>Chapter:</strong> {{ chapter.name }}
+    </p>
+
+    <hr>
+
+    <h3>
+        {{ question.question_text }}
+    </h3>
+
+    <p>
+        <strong>Difficulty:</strong>
+        {{ question.difficulty }}
+    </p>
+
+    <p>
+        <strong>Marks:</strong>
+        {{ question.marks }}
+    </p>
+
+    <p>
+        <strong>Negative Marks:</strong>
+        {{ question.negative_marks }}
+    </p>
+
+    <p>
+        <strong>Multiple Correct Answers:</strong>
+        {% if question.is_multiple_answer %}
+            Yes
+        {% else %}
+            No
+        {% endif %}
+    </p>
+
+    <hr>
+
+    <h3>Options</h3>
+
+    {% for option in question.options.all %}
+
+        <div class="mb-3">
+
+            <strong>
+                {{ forloop.counter }}.
+            </strong>
+
+            {{ option.option_text }}
+
+            {% if option.is_correct %}
+                <span class="text-success">
+                    ✓ Correct Answer
+                </span>
+            {% endif %}
+
+        </div>
+
+    {% empty %}
+
+        <p>No options found.</p>
+
+    {% endfor %}
+
+    {% if question.explanation %}
+
+        <hr>
+
+        <h3>Explanation</h3>
+
+        <p>
+            {{ question.explanation }}
+        </p>
+
+    {% endif %}
+
+    <hr>
+
+    <div class="d-flex gap-2">
+
+        {% if not question_locked %}
+
+            <a
+                href="{% url 'teacher_edit_question' subject.id chapter.id question.id %}"
+                class="btn btn-primary"
+            >
+                Edit Question
+            </a>
+
+        {% else %}
+
+            <span class="text-muted">
+                This question is locked because it is used in a published assessment.
+            </span>
+
+        {% endif %}
+
+        <a
+            href="{% url 'teacher_chapter_questions' subject.id chapter.id %}"
+            class="btn btn-secondary"
+        >
+            ← Back to Questions
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

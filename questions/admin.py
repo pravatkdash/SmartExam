@@ -68,6 +68,25 @@ class QuestionAdmin(admin.ModelAdmin):
         "is_active",
     )
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+
+        if request.user.user_type == "TEACHER":
+            assigned_subject_ids = request.user.teacher_assignments.filter(
+                is_active=True,
+            ).values_list(
+                "subject_id",
+                flat=True,
+            )
+
+            form.base_fields["chapter"].queryset = (
+                form.base_fields["chapter"]
+                .queryset
+                .filter(subject_id__in=assigned_subject_ids)
+            )
+
+        return form
+
     @admin.display(description="Question")
     def question_preview(self, obj):
         return obj.question_text

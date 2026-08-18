@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from common.models import BaseModel
@@ -16,6 +17,12 @@ class Question(BaseModel):
         Chapter,
         on_delete=models.PROTECT,
         related_name="questions",
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_questions",
     )
 
     question_text = models.TextField()
