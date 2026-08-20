@@ -39,6 +39,12 @@ urlpatterns = [
     ),
 
     path(
+        "teacher/<uuid:subject_id>/chapter/<uuid:chapter_id>/questions/<uuid:question_id>/edit/",
+        views.teacher_edit_question,
+        name="teacher_edit_question",
+    ),
+
+    path(
         "teacher/<uuid:subject_id>/chapter/<uuid:chapter_id>/questions/",
         views.teacher_chapter_questions,
         name="teacher_chapter_questions",
@@ -48,11 +54,5 @@ urlpatterns = [
         "teacher/<uuid:subject_id>/chapter/<uuid:chapter_id>/questions/<uuid:question_id>/",
         views.teacher_question_detail,
         name="teacher_question_detail",
-    ),
-
-    path(
-        "teacher/<uuid:subject_id>/chapter/<uuid:chapter_id>/questions/<uuid:question_id>/edit/",
-        views.teacher_edit_question,
-        name="teacher_edit_question",
     ),
 ]

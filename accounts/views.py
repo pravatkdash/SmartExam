@@ -23,6 +23,13 @@ from questions.question_service import is_question_locked, get_question_lock_mes
 from questions.teacher_forms import TeacherQuestionForm, TeacherOptionAddFormSet, TeacherOptionFormSet
 from subjects.models import TeacherAssignment
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+
+from accounts.models import UserType
+
 
 def home(request):
     return render(request, "accounts/home.html")
@@ -519,11 +526,18 @@ def teacher_edit_question(
     chapter_id,
     question_id,
 ):
+    print("🔥🔥🔥 TEACHER EDIT QUESTION VIEW HIT 🔥🔥🔥")
+    # --------------------------------------------------
+    # 1. Only teachers can edit questions
+    # --------------------------------------------------
 
     if request.user.user_type != UserType.TEACHER:
         return redirect("admin:index")
 
-    # Verify that this teacher is assigned to the subject.
+    # --------------------------------------------------
+    # 2. Verify teacher assignment
+    # --------------------------------------------------
+
     assignment = get_object_or_404(
         TeacherAssignment,
         teacher=request.user,
@@ -532,15 +546,20 @@ def teacher_edit_question(
         subject__is_active=True,
     )
 
-    # Verify that the chapter belongs to the subject.
+    # --------------------------------------------------
+    # 3. Verify chapter belongs to this subject
+    # --------------------------------------------------
+
     chapter = get_object_or_404(
         assignment.subject.chapters,
         id=chapter_id,
         is_active=True,
     )
 
-    # Verify that the question belongs to this chapter
-    # and was created by this teacher.
+    # --------------------------------------------------
+    # 4. Get the question
+    # --------------------------------------------------
+
     question = get_object_or_404(
         Question.objects.prefetch_related("options"),
         id=question_id,
@@ -548,7 +567,10 @@ def teacher_edit_question(
         created_by=request.user,
     )
 
-    # Published assessment questions are immutable.
+    # --------------------------------------------------
+    # 5. Published assessment = LOCKED
+    # --------------------------------------------------
+
     if is_question_locked(question):
 
         messages.error(
@@ -563,7 +585,16 @@ def teacher_edit_question(
             question_id=question_id,
         )
 
+    # --------------------------------------------------
+    # 6. POST - Save changes
+    # --------------------------------------------------
+
     if request.method == "POST":
+
+        print("========================================")
+        print("EDIT QUESTION POST")
+        print("Question ID:", question.id)
+        print("========================================")
 
         question_form = TeacherQuestionForm(
             request.POST,
@@ -575,15 +606,39 @@ def teacher_edit_question(
             instance=question,
         )
 
-        if (
-            question_form.is_valid()
-            and question_formset.is_valid()
-        ):
+        # ----------------------------------------------
+        # Validate both forms
+        # ----------------------------------------------
+
+        question_valid = question_form.is_valid()
+        formset_valid = question_formset.is_valid()
+
+        print("QUESTION VALID:", question_valid)
+        print("QUESTION ERRORS:", question_form.errors)
+
+        print("FORMSET VALID:", formset_valid)
+        print("FORMSET ERRORS:", question_formset.errors)
+        print(
+            "FORMSET NON-FORM ERRORS:",
+            question_formset.non_form_errors(),
+        )
+
+        # ----------------------------------------------
+        # Save
+        # ----------------------------------------------
+
+        if question_valid and formset_valid:
+
+            print("BOTH FORMS VALID")
+            print("Saving question...")
 
             with transaction.atomic():
 
                 question_form.save()
+
                 question_formset.save()
+
+            print("QUESTION SAVED SUCCESSFULLY")
 
             messages.success(
                 request,
@@ -597,6 +652,12 @@ def teacher_edit_question(
                 question_id=question_id,
             )
 
+        print("VALIDATION FAILED - NOTHING SAVED")
+
+    # --------------------------------------------------
+    # 7. GET - Display existing question
+    # --------------------------------------------------
+
     else:
 
         question_form = TeacherQuestionForm(
@@ -606,6 +667,10 @@ def teacher_edit_question(
         question_formset = TeacherOptionFormSet(
             instance=question,
         )
+
+    # --------------------------------------------------
+    # 8. Render edit page
+    # --------------------------------------------------
 
     return render(
         request,

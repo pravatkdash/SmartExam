@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}
@@ -7,6 +8,34 @@ Question Details - SmartExam
 {% block content %}
 
 <div class="container mt-5">
+
+    <!-- Success Message -->
+    {% if messages %}
+        {% for message in messages %}
+
+            {% if message.tags == "success" %}
+
+                <div
+                    class="alert alert-success alert-dismissible fade show"
+                    role="alert"
+                >
+                    <strong>✓ Success!</strong>
+                    {{ message }}
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close"
+                    ></button>
+
+                </div>
+
+            {% endif %}
+
+        {% endfor %}
+    {% endif %}
+
 
     <h1>Question Details</h1>
 
@@ -41,11 +70,13 @@ Question Details - SmartExam
 
     <p>
         <strong>Multiple Correct Answers:</strong>
+
         {% if question.is_multiple_answer %}
             Yes
         {% else %}
             No
         {% endif %}
+
     </p>
 
     <hr>
@@ -63,9 +94,11 @@ Question Details - SmartExam
             {{ option.option_text }}
 
             {% if option.is_correct %}
+
                 <span class="text-success">
                     ✓ Correct Answer
                 </span>
+
             {% endif %}
 
         </div>
@@ -75,6 +108,7 @@ Question Details - SmartExam
         <p>No options found.</p>
 
     {% endfor %}
+
 
     {% if question.explanation %}
 
@@ -88,18 +122,26 @@ Question Details - SmartExam
 
     {% endif %}
 
+
     <hr>
+
+
+    <!-- Action Buttons -->
 
     <div class="d-flex gap-2">
 
         {% if not question_locked %}
 
-            <a
-                href="{% url 'teacher_edit_question' subject.id chapter.id question.id %}"
+            <!-- Edit Question Button -->
+
+            <button
+                type="button"
                 class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#editQuestionModal"
             >
                 Edit Question
-            </a>
+            </button>
 
         {% else %}
 
@@ -108,6 +150,7 @@ Question Details - SmartExam
             </span>
 
         {% endif %}
+
 
         <a
             href="{% url 'teacher_chapter_questions' subject.id chapter.id %}"
@@ -118,6 +161,82 @@ Question Details - SmartExam
 
     </div>
 
+
 </div>
+
+
+<!-- ================================================== -->
+<!-- Edit Question Confirmation Modal -->
+<!-- ================================================== -->
+
+{% if not question_locked %}
+
+<div
+    class="modal fade"
+    id="editQuestionModal"
+    tabindex="-1"
+    aria-labelledby="editQuestionModalLabel"
+    aria-hidden="true"
+>
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title"
+                    id="editQuestionModalLabel"
+                >
+                    Edit Question
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <p class="mb-0">
+                    Do you want to update this question?
+                </p>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Cancel
+                </button>
+
+                <a
+                    href="{% url 'teacher_edit_question' subject.id chapter.id question.id %}"
+                    class="btn btn-primary"
+                >
+                    Continue
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endif %}
+
 
 {% endblock %}
