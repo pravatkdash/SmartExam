@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Assessments | SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <!-- Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <p class="text-primary fw-semibold mb-1">
+                Teacher Portal
+            </p>
+
+            <h2 class="fw-bold mb-1">
+                My Assessments
+            </h2>
+
+            <p class="text-muted mb-0">
+                Create and manage your assessments.
+            </p>
+
+        </div>
+
+        <div>
+
+            <a
+                href="{% url 'teacher_assessment_create' %}"
+                class="btn btn-primary"
+            >
+                + Create Assessment
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Assessments -->
+
+    <div class="card border-0 shadow-sm rounded-3">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th class="px-4 py-3">
+                                Assessment
+                            </th>
+
+                            <th class="py-3">
+                                Subject
+                            </th>
+
+                            <th class="py-3">
+                                Duration
+                            </th>
+
+                            <th class="py-3">
+                                Status
+                            </th>
+
+                            <th class="py-3 text-end pe-4">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        {% for assessment in assessments %}
+
+                            <tr>
+
+                                <td class="px-4 py-3">
+
+                                    <strong>
+                                        {{ assessment.name }}
+                                    </strong>
+
+                                    {% if assessment.description %}
+
+                                        <br>
+
+                                        <small class="text-muted">
+                                            {{ assessment.description|truncatechars:80 }}
+                                        </small>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ assessment.subject.name }}
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ assessment.duration_minutes }}
+                                    min
+
+                                </td>
+
+
+                                <td>
+
+                                    {% if assessment.status == "PUBLISHED" %}
+
+                                        <span class="badge bg-success">
+                                            Published
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="badge bg-secondary">
+                                            Draft
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <td class="text-end pe-4">
+
+                                    <a href="{% url 'teacher_assessment_detail' assessment.id %}"
+                                        class="btn btn-sm btn-outline-primary"
+                                    >
+                                        Open
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td
+                                    colspan="5"
+                                    class="text-center py-5"
+                                >
+
+                                    <div class="fs-1 mb-2">
+                                        📝
+                                    </div>
+
+                                    <h6 class="fw-semibold">
+                                        No assessments yet
+                                    </h6>
+
+                                    <p class="text-muted small mb-0">
+                                        Create your first assessment to get started.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Back -->
+
+    <div class="mt-4">
+
+        <a
+            href="{% url 'teacher_dashboard' %}"
+            class="btn btn-secondary"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

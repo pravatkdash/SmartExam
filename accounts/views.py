@@ -259,7 +259,6 @@ def teacher_login(request):
     )
 
 
-
 def teacher_dashboard(request):
     if not request.user.is_authenticated:
         return redirect("teacher_login")
@@ -280,11 +279,34 @@ def teacher_dashboard(request):
         )
     )
 
+    # --------------------------------------------------
+    # Teacher Assessments
+    # --------------------------------------------------
+
+    assessment_count = Assessment.objects.filter(
+        created_by=request.user,
+    ).count()
+
+    recent_assessments = (
+        Assessment.objects
+        .filter(
+            created_by=request.user,
+        )
+        .select_related(
+            "subject",
+        )
+        .order_by(
+            "-created_at",
+        )[:5]
+    )
+
     return render(
         request,
         "accounts/teacher_dashboard.html",
         {
             "assignments": assignments,
+            "assessment_count": assessment_count,
+            "recent_assessments": recent_assessments,
         },
     )
 

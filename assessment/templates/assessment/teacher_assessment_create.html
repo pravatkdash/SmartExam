@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Assessment | SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <!-- Header -->
+
+    <div class="mb-4">
+
+        <p class="text-primary fw-semibold mb-1">
+            Teacher Portal
+        </p>
+
+        <h2 class="fw-bold mb-1">
+            Create Assessment
+        </h2>
+
+        <p class="text-muted mb-0">
+            Create a new assessment for one of your assigned subjects.
+        </p>
+
+    </div>
+
+
+    <!-- Form -->
+
+    <div class="card border-0 shadow-sm rounded-3">
+
+        <div class="card-body p-4">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                <!-- Subject -->
+
+                <div class="mb-4">
+
+                    <label
+                        for="subject"
+                        class="form-label fw-semibold"
+                    >
+                        Subject
+                    </label>
+
+                    <select
+                        name="subject"
+                        id="subject"
+                        class="form-select"
+                        required
+                    >
+
+                        <option value="">
+                            Select Subject
+                        </option>
+
+                        {% for assignment in assignments %}
+
+                            <option value="{{ assignment.subject.id }}">
+
+                                {{ assignment.subject.name }}
+                                -
+                                {{ assignment.subject.program.name }}
+
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <div class="form-text">
+                        You can create assessments only for subjects assigned to you.
+                    </div>
+
+                </div>
+
+
+                <!-- Assessment Name -->
+
+                <div class="mb-4">
+
+                    <label
+                        for="name"
+                        class="form-label fw-semibold"
+                    >
+                        Assessment Name
+                    </label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        class="form-control"
+                        maxlength="100"
+                        placeholder="Example: Physics Chapter Test 1"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- Description -->
+
+                <div class="mb-4">
+
+                    <label
+                        for="description"
+                        class="form-label fw-semibold"
+                    >
+                        Description
+                    </label>
+
+                    <textarea
+                        name="description"
+                        id="description"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Optional description for this assessment."
+                    ></textarea>
+
+                </div>
+
+
+                <!-- Duration -->
+
+                <div class="mb-4">
+
+                    <label
+                        for="duration_minutes"
+                        class="form-label fw-semibold"
+                    >
+                        Duration
+                    </label>
+
+                    <div class="input-group">
+
+                        <input
+                            type="number"
+                            name="duration_minutes"
+                            id="duration_minutes"
+                            class="form-control"
+                            min="1"
+                            placeholder="60"
+                            required
+                        >
+
+                        <span class="input-group-text">
+                            minutes
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <hr class="my-4">
+
+
+                <!-- Draft Information -->
+
+                <div class="alert alert-light border">
+
+                    <strong>
+                        Draft Assessment
+                    </strong>
+
+                    <p class="mb-0 mt-1 text-muted">
+                        This assessment will be created as a draft.
+                        You can add questions and publish it later.
+                    </p>
+
+                </div>
+
+
+                <!-- Buttons -->
+
+                <div class="d-flex gap-2">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        Create Assessment
+                    </button>
+
+                    <a
+                        href="{% url 'teacher_assessment_list' %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
