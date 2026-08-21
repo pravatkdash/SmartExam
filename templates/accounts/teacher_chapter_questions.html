@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ chapter.name }} - Questions
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h1>{{ chapter.name }}</h1>
+
+    <p>
+        Subject: {{ subject.name }}
+    </p>
+
+    <hr>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Questions</h2>
+
+        <a
+            href="{% url 'teacher_add_question' subject.id chapter.id %}"
+            class="btn btn-primary"
+        >
+            Add Question
+        </a>
+    </div>
+
+    <hr>
+
+    {% if questions %}
+
+        {% for question in questions %}
+
+            <div class="mb-4">
+
+                <h4>
+                    <a
+                        href="{% url 'teacher_question_detail' subject.id chapter.id question.id %}"
+                        class="text-decoration-none"
+                    >
+                        {{ forloop.counter }}. {{ question.question_text }}
+                    </a>
+                </h4>
+
+                <p>
+                    Difficulty: {{ question.difficulty }}
+                    |
+                    Marks: {{ question.marks }}
+                </p>
+
+            </div>
+
+            <hr>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>
+            No questions have been added to this chapter yet.
+        </p>
+
+        <a
+            href="{% url 'teacher_add_question' subject.id chapter.id %}"
+            class="btn btn-primary"
+        >
+            Add First Question
+        </a>
+
+    {% endif %}
+
+    <br>
+
+    <a
+        href="{% url 'teacher_subject_chapters' subject.id %}"
+    >
+        ← Back to Chapters
+    </a>
+
+</div>
+
+{% endblock %}

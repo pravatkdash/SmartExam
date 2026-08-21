@@ -31,21 +31,21 @@ class AssessmentAdmin(admin.ModelAdmin):
     form = AssessmentAdminForm
 
     list_display = (
-        "exam",
+        "subject",
         "assessment_name",
         "duration",
         "status",
         "is_active",
     )
 
-
     search_fields = (
         "name",
-        "exam__name",
+        "subject__name",
+        "subject__program__name",
     )
 
     list_filter = (
-        "exam",
+        "subject",
         "status",
         "is_active",
     )
@@ -55,7 +55,7 @@ class AssessmentAdmin(admin.ModelAdmin):
             "Assessment Information",
             {
                 "fields": (
-                    "exam",
+                    "subject",
                     "name",
                     "description",
                 ),
@@ -87,11 +87,16 @@ class AssessmentAdmin(admin.ModelAdmin):
 
         super().save_model(request, obj, form, change)
 
-    @admin.display(description="Assessment", ordering="name",)
+    @admin.display(
+        description="Assessment",
+        ordering="name",
+    )
     def assessment_name(self, obj):
         return obj.name
 
-    @admin.display(description="Duration", ordering="duration_minutes",
-)
+    @admin.display(
+        description="Duration",
+        ordering="duration_minutes",
+    )
     def duration(self, obj):
         return f"{obj.duration_minutes} min"

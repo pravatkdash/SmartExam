@@ -6,6 +6,7 @@ from .models import User
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+
     ordering = ("email",)
 
     list_display = (
@@ -18,15 +19,53 @@ class CustomUserAdmin(UserAdmin):
         "is_active",
     )
 
-
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "email",
+                    "password",
+                )
+            },
+        ),
+        (
+            "Personal Information",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "mobile_number",
+                )
+            },
+        ),
         (
             "SmartExam Information",
             {
                 "fields": (
-                    "mobile_number",
-                    "mobile_verified",
                     "user_type",
+                    "mobile_verified",
+                )
+            },
+        ),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+        (
+            "Important Dates",
+            {
+                "fields": (
+                    "last_login",
+                    "date_joined",
                 )
             },
         ),

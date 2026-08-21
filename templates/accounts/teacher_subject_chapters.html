@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ subject.name }} - Chapters
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h1>{{ subject.name }}</h1>
+
+    <p>
+        Program: {{ subject.program.name }}
+    </p>
+
+    <p>
+        Institute: {{ subject.program.institute.name }}
+    </p>
+
+    <hr>
+
+    <h2>Chapters</h2>
+
+    {% if chapters %}
+
+        {% for chapter in chapters %}
+
+            <div class="mb-4">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <h3 class="mb-0">
+                        {{ chapter.name }}
+                    </h3>
+
+                    <div>
+                        <a
+                            href="{% url 'teacher_chapter_questions' subject.id chapter.id %}"
+                            class="btn btn-outline-primary me-2"
+                        >
+                            View Questions
+                        </a>
+
+                        <a
+                            href="{% url 'teacher_add_question' subject.id chapter.id %}"
+                            class="btn btn-primary"
+                        >
+                            Add Question
+                        </a>
+                    </div>
+
+                </div>
+
+                <hr>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>
+            No chapters have been created for this subject yet.
+        </p>
+
+    {% endif %}
+
+    <a href="{% url 'teacher_dashboard' %}">
+        ← Back to My Subjects
+    </a>
+
+</div>
+
+{% endblock %}
