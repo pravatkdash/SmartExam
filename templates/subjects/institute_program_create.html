@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Program | SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="mb-4">
+        <h1 class="fw-bold mb-1">
+            Create Program
+        </h1>
+
+        <p class="text-muted mb-0">
+            Create a program for {{ request.user.institute.name }}
+        </p>
+    </div>
+
+    <div class="card shadow border-0 rounded-3">
+        <div class="card-body p-4 p-md-5">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <!-- Program Name -->
+                <div class="mb-4">
+
+                    <label for="name"
+                           class="form-label fw-semibold">
+                        Program Name
+                    </label>
+
+                    <input type="text"
+                           name="name"
+                           id="name"
+                           class="form-control form-control-lg"
+                           placeholder="Enter program name"
+                           maxlength="200"
+                           required>
+
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+
+                    <label for="description"
+                           class="form-label fw-semibold">
+                        Description
+                    </label>
+
+                    <textarea name="description"
+                              id="description"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Enter program description"></textarea>
+
+                </div>
+
+                <!-- Institute -->
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+                        Institute
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           value="{{ request.user.institute.name }}"
+                           readonly>
+
+                    <div class="form-text">
+                        This program will automatically belong to your institute.
+                    </div>
+
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Create Program
+                    </button>
+
+                    <a href="{% url 'institute_program_list' %}"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

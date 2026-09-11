@@ -311,6 +311,72 @@ def teacher_dashboard(request):
     )
 
 
+
+
+def institute_admin_login(request):
+
+    if request.user.is_authenticated:
+        if request.user.user_type == UserType.INSTITUTE_ADMIN:
+            return redirect("institute_dashboard")
+
+        return redirect("home")
+
+    if request.method == "POST":
+        form = TeacherLoginForm(request.POST)
+
+        if form.is_valid():
+            email = form.cleaned_data["email"]
+            password = form.cleaned_data["password"]
+
+            user = authenticate(
+                request,
+                email=email,
+                password=password,
+            )
+
+            if (
+                user is not None
+                and user.user_type == UserType.INSTITUTE_ADMIN
+            ):
+                login(request, user)
+                return redirect("institute_dashboard")
+
+            messages.error(
+                request,
+                "Invalid institute admin credentials.",
+            )
+    else:
+        form = TeacherLoginForm()
+
+    return render(
+        request,
+        "accounts/institute_admin_login.html",
+        {
+            "form": form,
+        },
+    )
+
+
+@login_required
+def institute_admin_dashboard(request):
+
+    if request.user.user_type != UserType.INSTITUTE_ADMIN:
+        return redirect("home")
+
+    institute = request.user.institute
+
+    return render(
+        request,
+        "accounts/institute_admin_dashboard.html",
+        {
+            "institute": institute,
+        },
+    )
+
+
+
+
+
 def teacher_subject_chapters(request, subject_id):
     if not request.user.is_authenticated:
         return redirect("teacher_login")
@@ -456,6 +522,11 @@ def teacher_add_question(request, subject_id, chapter_id):
             chapter=chapter,
             created_by=request.user,
         )
+
+        if question_form.is_valid():
+            temporary_question.is_multiple_answer = (
+                question_form.cleaned_data["is_multiple_answer"]
+            )
 
         question_formset = TeacherOptionAddFormSet(
             request.POST,
@@ -705,6 +776,106 @@ def teacher_edit_question(
             "question": question,
         },
     )
+
+
+@login_required
+def teacher_delete_question(
+    request,
+    subject_id,
+    chapter_id,
+    question_id,
+):
+
+    # --------------------------------------------------
+    # 1. Only teachers can delete questions
+    # --------------------------------------------------
+
+    if request.user.user_type != UserType.TEACHER:
+        return redirect("admin:index")
+
+    # --------------------------------------------------
+    # 2. Verify teacher assignment
+    # --------------------------------------------------
+
+    assignment = get_object_or_404(
+        TeacherAssignment,
+        teacher=request.user,
+        subject_id=subject_id,
+        is_active=True,
+        subject__is_active=True,
+    )
+
+    # --------------------------------------------------
+    # 3. Verify chapter belongs to this subject
+    # --------------------------------------------------
+
+    chapter = get_object_or_404(
+        assignment.subject.chapters,
+        id=chapter_id,
+        is_active=True,
+    )
+
+    # --------------------------------------------------
+    # 4. Get question
+    # --------------------------------------------------
+
+    question = get_object_or_404(
+        Question,
+        id=question_id,
+        chapter=chapter,
+        created_by=request.user,
+    )
+
+    # --------------------------------------------------
+    # 5. Published assessment = LOCKED
+    # --------------------------------------------------
+
+    if is_question_locked(question):
+
+        messages.error(
+            request,
+            get_question_lock_message(question),
+        )
+
+        return redirect(
+            "teacher_question_detail",
+            subject_id=subject_id,
+            chapter_id=chapter_id,
+            question_id=question_id,
+        )
+
+    # --------------------------------------------------
+    # 6. Delete only through POST
+    # --------------------------------------------------
+
+    if request.method != "POST":
+
+        return redirect(
+            "teacher_question_detail",
+            subject_id=subject_id,
+            chapter_id=chapter_id,
+            question_id=question_id,
+        )
+
+    # --------------------------------------------------
+    # 7. Delete question
+    # --------------------------------------------------
+
+    with transaction.atomic():
+
+        question.delete()
+
+    messages.success(
+        request,
+        "Question deleted successfully.",
+    )
+
+    return redirect(
+        "teacher_chapter_questions",
+        subject_id=subject_id,
+        chapter_id=chapter_id,
+    )
+
 
 
 def student_logout(request):

@@ -1,5 +1,22 @@
 # SmartExam Coding Standards
 
+SmartExam
+│
+├── accounts/
+│   └── User, login, authentication
+│
+├── subjects/
+│   └── Program, Subject, Chapter
+│
+├── institute_admin/
+│   └── Institute Admin functionality
+│
+├── questions/
+│   └── Questions
+│
+└── assessments/
+    └── Assessments
+
 ## Naming
 - Use American English
 - Use singular model names

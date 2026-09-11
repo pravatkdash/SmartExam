@@ -8,6 +8,7 @@ from .managers import UserManager
 class UserType(models.TextChoices):
     SUPER_ADMIN = "SUPER_ADMIN", "Super Admin"
     ADMIN = "ADMIN", "Admin"
+    INSTITUTE_ADMIN = "INSTITUTE_ADMIN", "Institute Admin"
     TEACHER = "TEACHER", "Teacher"
     STUDENT = "STUDENT", "Student"
 
@@ -33,6 +34,14 @@ class User(AbstractUser):
         default=UserType.STUDENT,
     )
 
+    institute = models.ForeignKey(
+        "subjects.Institute",
+        on_delete=models.PROTECT,
+        related_name="users",
+        blank=True,
+        null=True,
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -42,6 +51,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.email})"
+
 
 class OTPPurpose(models.TextChoices):
     REGISTRATION = "REGISTRATION", "Registration"

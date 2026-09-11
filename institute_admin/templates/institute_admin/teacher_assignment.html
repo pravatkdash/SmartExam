@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Teacher Assignments</h2>
+            <p class="text-muted mb-0">
+                Manage assignments for
+                <strong>{{ teacher.get_full_name|default:teacher.email }}</strong>
+            </p>
+        </div>
+
+        <a href="{% url 'institute_teacher_list' %}"
+           class="btn btn-secondary">
+            ← Back to Teachers
+        </a>
+    </div>
+
+
+    <!-- Teacher Information -->
+    <div class="card mb-4">
+        <div class="card-body">
+
+            <h5 class="card-title mb-3">
+                Teacher Information
+            </h5>
+
+            <div class="row">
+
+                <div class="col-md-4">
+                    <strong>Name</strong>
+                    <div>
+                        {{ teacher.get_full_name|default:"-" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Email</strong>
+                    <div>
+                        {{ teacher.email }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <strong>Mobile</strong>
+                    <div>
+                        {{ teacher.mobile_number|default:"-" }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Add Assignment -->
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <h5 class="mb-0">
+                Add Assignment
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+
+                <!-- Assignment Type -->
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        {{ form.assignment_type.label }}
+                    </label>
+
+                    {{ form.assignment_type }}
+
+                    {% if form.assignment_type.errors %}
+                        <div class="text-danger small">
+                            {{ form.assignment_type.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Subject -->
+                <div class="mb-3" id="subject-field">
+
+                    <label class="form-label">
+                        {{ form.subject.label }}
+                    </label>
+
+                    {{ form.subject }}
+
+                    {% if form.subject.errors %}
+                        <div class="text-danger small">
+                            {{ form.subject.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <!-- Chapter -->
+                <div class="mb-3" id="chapter-field">
+
+                    <label class="form-label">
+                        {{ form.chapter.label }}
+                    </label>
+
+                    {{ form.chapter }}
+
+                    {% if form.chapter.errors %}
+                        <div class="text-danger small">
+                            {{ form.chapter.errors }}
+                        </div>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Assign
+                    </button>
+
+                    <a href="{% url 'institute_teacher_assignment' teacher.id %}"
+                       class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- Existing Assignments -->
+    <div class="card">
+
+        <div class="card-header">
+            <h5 class="mb-0">
+                Current Assignments
+            </h5>
+        </div>
+
+        <div class="card-body p-0">
+
+            {% if assignments %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Type</th>
+                                <th>Assignment</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for assignment in assignments %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ forloop.counter }}
+                                    </td>
+
+                                    <td>
+
+                                        {% if assignment.subject %}
+                                            <span class="badge bg-primary">
+                                                Subject
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-info">
+                                                Chapter
+                                            </span>
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+
+                                        {% if assignment.subject %}
+
+                                            <strong>
+                                                {{ assignment.subject.name }}
+                                            </strong>
+
+                                            {% if assignment.subject.program %}
+                                                <div class="text-muted small">
+                                                    {{ assignment.subject.program.name }}
+                                                </div>
+                                            {% endif %}
+
+                                        {% else %}
+
+                                            <strong>
+                                                {{ assignment.chapter.name }}
+                                            </strong>
+
+                                            {% if assignment.chapter.subject %}
+                                                <div class="text-muted small">
+                                                    {{ assignment.chapter.subject.name }}
+                                                </div>
+                                            {% endif %}
+
+                                        {% endif %}
+
+                                    </td>
+
+                                    <td>
+
+                                        {% if assignment.is_active %}
+
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+
+                                        {% else %}
+
+                                            <span class="badge bg-secondary">
+                                                Inactive
+                                            </span>
+
+                                        {% endif %}
+
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-5">
+
+                    <h5>No assignments yet</h5>
+
+                    <p class="text-muted mb-0">
+                        This teacher has not been assigned any
+                        subjects or chapters yet.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Assignment Type Toggle -->
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const assignmentType =
+            document.getElementById("id_assignment_type");
+
+        const subjectField =
+            document.getElementById("subject-field");
+
+        const chapterField =
+            document.getElementById("chapter-field");
+
+
+        function updateFields() {
+
+            if (!assignmentType) {
+                return;
+            }
+
+            if (assignmentType.value === "subject") {
+
+                subjectField.style.display = "block";
+                chapterField.style.display = "none";
+
+            } else {
+
+                subjectField.style.display = "none";
+                chapterField.style.display = "block";
+
+            }
+
+        }
+
+
+        assignmentType.addEventListener(
+            "change",
+            updateFields
+        );
+
+        updateFields();
+
+    });
+
+</script>
+
+{% endblock %}

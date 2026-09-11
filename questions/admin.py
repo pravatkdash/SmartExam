@@ -87,6 +87,12 @@ class QuestionAdmin(admin.ModelAdmin):
 
         return form
 
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.created_by = request.user
+
+        super().save_model(request, obj, form, change)
+
     @admin.display(description="Question")
     def question_preview(self, obj):
         return obj.question_text

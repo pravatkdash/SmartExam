@@ -1,83 +1,168 @@
 {% extends "base.html" %}
 
 {% block title %}
-{{ chapter.name }} - Questions
+{{ chapter.name }} - Questions | SmartExam
 {% endblock %}
 
 {% block content %}
 
 <div class="container mt-5">
 
-    <h1>{{ chapter.name }}</h1>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
 
-    <p>
-        Subject: {{ subject.name }}
-    </p>
+        <div>
+            <h2 class="fw-bold mb-1">
+                {{ chapter.name }}
+            </h2>
 
-    <hr>
-
-    <div class="d-flex justify-content-between align-items-center">
-        <h2>Questions</h2>
+            <p class="text-muted mb-0">
+                Subject: {{ subject.name }}
+            </p>
+        </div>
 
         <a
             href="{% url 'teacher_add_question' subject.id chapter.id %}"
             class="btn btn-primary"
         >
-            Add Question
+            + Add Question
         </a>
+
     </div>
 
-    <hr>
+    <hr class="mb-4">
+
 
     {% if questions %}
 
         {% for question in questions %}
 
-            <div class="mb-4">
+            <div class="card border-0 shadow-sm mb-3">
 
-                <h4>
-                    <a
-                        href="{% url 'teacher_question_detail' subject.id chapter.id question.id %}"
-                        class="text-decoration-none"
-                    >
-                        {{ forloop.counter }}. {{ question.question_text }}
-                    </a>
-                </h4>
+                <div class="card-body">
 
-                <p>
-                    Difficulty: {{ question.difficulty }}
-                    |
-                    Marks: {{ question.marks }}
-                </p>
+                    <!-- Question -->
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div class="me-3">
+
+                            <h5 class="fw-semibold mb-2">
+
+                                {{ forloop.counter }}.
+                                {{ question.question_text }}
+
+                            </h5>
+
+                            <div class="text-muted small">
+
+                                <span class="me-3">
+                                    Difficulty:
+                                    <strong>
+                                        {{ question.difficulty }}
+                                    </strong>
+                                </span>
+
+                                <span>
+                                    Marks:
+                                    <strong>
+                                        {{ question.marks }}
+                                    </strong>
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 flex-shrink-0">
+
+                            <a
+                                href="{% url 'teacher_question_detail' subject.id chapter.id question.id %}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                View
+                            </a>
+
+                            <a
+                                href="{% url 'teacher_edit_question' subject.id chapter.id question.id %}"
+                                class="btn btn-sm btn-outline-secondary"
+                            >
+                                Edit
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{% url 'teacher_delete_question' subject.id chapter.id question.id %}"
+                                class="d-inline"
+                                onsubmit="return confirm('Are you sure you want to delete this question?');"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm btn-outline-danger"
+                                >
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
 
             </div>
-
-            <hr>
 
         {% endfor %}
 
     {% else %}
 
-        <p>
-            No questions have been added to this chapter yet.
-        </p>
+        <!-- Empty State -->
 
-        <a
-            href="{% url 'teacher_add_question' subject.id chapter.id %}"
-            class="btn btn-primary"
-        >
-            Add First Question
-        </a>
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-body text-center py-5">
+
+                <div class="fs-1 mb-3">
+                    ❓
+                </div>
+
+                <h5 class="fw-bold">
+                    No questions yet
+                </h5>
+
+                <p class="text-muted">
+                    No questions have been added to this chapter yet.
+                </p>
+
+                <a
+                    href="{% url 'teacher_add_question' subject.id chapter.id %}"
+                    class="btn btn-primary"
+                >
+                    + Add First Question
+                </a>
+
+            </div>
+
+        </div>
 
     {% endif %}
 
-    <br>
 
-    <a
-        href="{% url 'teacher_subject_chapters' subject.id %}"
-    >
-        ← Back to Chapters
-    </a>
+    <!-- Back -->
+    <div class="mt-4">
+
+        <a
+            href="{% url 'teacher_subject_chapters' subject.id %}"
+            class="text-decoration-none"
+        >
+            ← Back to Chapters
+        </a>
+
+    </div>
 
 </div>
 

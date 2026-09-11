@@ -1,3 +1,37 @@
+SUPER ADMIN
+│
+├── Create Institute Admin
+│      └── Select Institute
+│
+├── Create Teacher
+│      └── Can select Institute
+│
+└── Create Student
+       └── Can select Institute
+
+
+INSTITUTE ADMIN (ABC Institute)
+│
+├── Create Teacher
+│      └── Automatically → ABC Institute
+│
+├── Create Student
+│      └── Automatically → ABC Institute
+│
+└── Manage only ABC Institute users
+
+then
+
+Institute Admin
+      ↓
+Teacher
+      ↓
+Subject / Chapter Assignment
+      ↓
+Teacher
+      ↓
+Questions
+
 Final Phase 9 prompt
 
 Are we accidentally expanding V1?

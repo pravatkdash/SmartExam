@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="mb-4">
+        <h2>Institute Admin Dashboard</h2>
+
+        <p class="text-muted mb-0">
+            Welcome, {{ request.user.first_name }}!
+        </p>
+
+        <p class="text-muted">
+            Institute: {{ request.user.institute.name }}
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Programs -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+
+                    <h4 class="card-title">📚 Programs</h4>
+
+                    <p class="card-text text-muted">
+                        Manage programs, subjects and chapters.
+                    </p>
+
+                    <a href="{% url 'institute_program_list' %}"
+                       class="btn btn-primary">
+                        Manage Programs
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Teachers -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+
+                    <h4 class="card-title">👨‍🏫 Teachers</h4>
+
+                    <p class="card-text text-muted">
+                        Create teachers and assign subjects or chapters.
+                    </p>
+
+                    <button class="btn btn-secondary" disabled>
+                        Manage Teachers
+                    </button>
+
+                    <small class="d-block text-muted mt-2">
+                        Coming next
+                    </small>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
