@@ -69,19 +69,7 @@ def assessment_exam_view(request, attempt_id, question_number):
         navigation = request.POST.get("navigation")
 
         # ---------------------------------------------
-        # Submit Exam
-        # ---------------------------------------------
-        if navigation == "submit":
-
-            submit_assessment(attempt)
-
-            return redirect(
-                "assessment_result",
-                attempt_id=attempt.id,
-            )
-
-        # ---------------------------------------------
-        # Save answer
+        # Save current answer
         # ---------------------------------------------
         option_ids = request.POST.getlist("answers")
 
@@ -98,6 +86,17 @@ def assessment_exam_view(request, attempt_id, question_number):
                 "answered_at",
             ]
         )
+
+        # ---------------------------------------------
+        # Submit Exam
+        # ---------------------------------------------
+        if navigation == "submit":
+            submit_assessment(attempt)
+
+            return redirect(
+                "assessment_result",
+                attempt_id=attempt.id,
+            )
 
         # ---------------------------------------------
         # Next question
