@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet, inlineformset_factory
 
 from .models import Question, Option
@@ -68,7 +69,50 @@ class TeacherOptionBaseFormSet(BaseInlineFormSet):
     display_order of the options.
     """
 
+    def clean(self):
+        super().clean()
+
+        if any(self.errors):
+            return
+
+        correct_answers = 0
+
+        for form in self.forms:
+
+            if not form.cleaned_data:
+                continue
+
+            if form.cleaned_data.get("DELETE", False):
+                continue
+
+            # Ignore completely empty option forms
+            if not form.cleaned_data.get("option_text"):
+                continue
+
+            if form.cleaned_data.get("is_correct", False):
+                correct_answers += 1
+
+        # Get is_multiple_answer from the temporary Question instance
+        is_multiple_answer = getattr(
+            self.instance,
+            "is_multiple_answer",
+            False,
+        )
+
+        # At least one correct answer is always required
+        if correct_answers == 0:
+            raise ValidationError(
+                "Please select at least one correct option."
+            )
+
+        # Single-answer question must have exactly one
+        if not is_multiple_answer and correct_answers > 1:
+            raise ValidationError(
+                "Single-answer questions must have exactly one correct option."
+            )
+
     def save(self, commit=True):
+
         instances = super().save(commit=False)
 
         display_order = 1
@@ -85,7 +129,6 @@ class TeacherOptionBaseFormSet(BaseInlineFormSet):
                 instance.save()
 
         return instances
-
 
 
 

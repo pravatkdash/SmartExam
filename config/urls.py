@@ -17,9 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+admin.site.site_header = "SmartExam Administration"
+admin.site.site_title = "SmartExam Admin"
+admin.site.index_title = "SmartExam Admin Dashboard"
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
     path("assessment/", include("assessment.urls")),
+    path(
+        "institute/",
+        include("institute_admin.urls"),
+    ),
+    path("", include("subjects.urls")),
 ]

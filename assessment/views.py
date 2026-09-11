@@ -1,10 +1,16 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from assessment.models import Assessment, AssessmentAttempt, StudentAnswer, AssessmentAttemptStatus
+from accounts.models import UserType
+from assessment.models import Assessment, AssessmentAttempt, StudentAnswer, AssessmentAttemptStatus, AssessmentStatus, \
+    AssessmentQuestion
 from assessment.services.attempt_service import start_assessment
 from assessment.services.result_service import submit_assessment
+from questions.models import Question
+from subjects.models import TeacherAssignment
 
 
 @login_required
@@ -177,4 +183,489 @@ def start_assessment_view(request, assessment_id):
         "assessment_exam",
         attempt_id=attempt.id,
         question_number=1,
+    )
+
+
+@login_required
+def teacher_assessment_list(request):
+
+    if request.user.user_type != UserType.TEACHER:
+        return redirect("admin:index")
+
+    assessments = (
+        Assessment.objects
+        .filter(
+            created_by=request.user,
+        )
+        .select_related(
+            "subject",
+            "subject__program",
+        )
+        .order_by(
+            "-created_at",
+        )
+    )
+
+    return render(
+        request,
+        "assessment/teacher_assessment_list.html",
+        {
+            "assessments": assessments,
+        },
+    )
+
+
+
+@login_required
+def teacher_assessment_create(request):
+
+    if request.user.user_type != UserType.TEACHER:
+        return redirect("admin:index")
+
+    assignments = (
+        TeacherAssignment.objects
+        .filter(
+            teacher=request.user,
+            is_active=True,
+            subject__is_active=True,
+        )
+        .select_related(
+            "subject",
+            "subject__program",
+        )
+        .order_by(
+            "subject__name",
+        )
+    )
+
+    if request.method == "POST":
+
+        subject_id = request.POST.get("subject")
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        duration_minutes = request.POST.get("duration_minutes")
+
+        # ---------------------------------------------
+        # Validate subject
+        # ---------------------------------------------
+
+        subject = get_object_or_404(
+            TeacherAssignment.objects.select_related("subject"),
+            teacher=request.user,
+            subject_id=subject_id,
+            is_active=True,
+            subject__is_active=True,
+        ).subject
+
+        # ---------------------------------------------
+        # Basic validation
+        # ---------------------------------------------
+
+        errors = []
+
+        if not name:
+            errors.append("Assessment name is required.")
+
+        if not duration_minutes:
+            errors.append("Duration is required.")
+        else:
+            try:
+                duration_minutes = int(duration_minutes)
+
+                if duration_minutes <= 0:
+                    errors.append(
+                        "Duration must be greater than zero."
+                    )
+
+            except ValueError:
+                errors.append(
+                    "Duration must be a valid number."
+                )
+
+        # ---------------------------------------------
+        # Duplicate assessment name
+        # ---------------------------------------------
+
+        if not errors:
+
+            if Assessment.objects.filter(
+                created_by=request.user,
+                subject=subject,
+                name=name,
+            ).exists():
+
+                errors.append(
+                    "You already have an assessment with this name "
+                    "for this subject."
+                )
+
+        # ---------------------------------------------
+        # Validation failed
+        # ---------------------------------------------
+
+        if errors:
+
+            for error in errors:
+                messages.error(request, error)
+
+        else:
+
+            # -----------------------------------------
+            # Create Draft Assessment
+            # -----------------------------------------
+
+            assessment = Assessment.objects.create(
+                subject=subject,
+                name=name,
+                description=description,
+                duration_minutes=duration_minutes,
+                status=AssessmentStatus.DRAFT,
+                is_active=False,
+                created_by=request.user,
+            )
+
+            messages.success(
+                request,
+                "Assessment created successfully.",
+            )
+
+            return redirect(
+                "teacher_assessment_list",
+            )
+
+    return render(
+        request,
+        "assessment/teacher_assessment_create.html",
+        {
+            "assignments": assignments,
+        },
+    )
+
+'''Teacher A should never be '
+ able to access Assessment B just by changing the UUID in the URL.'''
+
+@login_required
+def teacher_assessment_detail(request, assessment_id):
+
+    if request.user.user_type != UserType.TEACHER:
+        return redirect("admin:index")
+
+    assessment = get_object_or_404(
+        Assessment.objects.select_related(
+            "subject",
+            "subject__program",
+        ),
+        id=assessment_id,
+        created_by=request.user,
+    )
+
+    assessment_questions = (
+        assessment.assessment_questions
+        .select_related(
+            "question",
+            "question__chapter",
+        )
+        .order_by(
+            "display_order",
+        )
+    )
+
+    return render(
+        request,
+        "assessment/teacher_assessment_detail.html",
+        {
+            "assessment": assessment,
+            "assessment_questions": assessment_questions,
+        },
+    )
+
+
+
+@login_required
+def teacher_assessment_add_questions(request, assessment_id):
+
+    # -------------------------------------------------
+    # 1. Only teachers
+    # -------------------------------------------------
+
+    if request.user.user_type != UserType.TEACHER:
+        return redirect("admin:index")
+
+    # -------------------------------------------------
+    # 2. Get assessment owned by this teacher
+    # -------------------------------------------------
+
+    assessment = get_object_or_404(
+        Assessment.objects.select_related(
+            "subject",
+            "subject__program",
+        ),
+        id=assessment_id,
+        created_by=request.user,
+    )
+
+    # -------------------------------------------------
+    # 3. Published assessment cannot be modified
+    # -------------------------------------------------
+
+    if assessment.status != AssessmentStatus.DRAFT:
+
+        messages.error(
+            request,
+            "Published assessments cannot be modified.",
+        )
+
+        return redirect(
+            "teacher_assessment_detail",
+            assessment_id=assessment.id,
+        )
+
+    # -------------------------------------------------
+    # 4. Get teacher's questions for this subject
+    # -------------------------------------------------
+
+    questions = (
+        Question.objects
+        .filter(
+            chapter__subject=assessment.subject,
+            created_by=request.user,
+            is_active=True,
+            chapter__is_active=True,
+            chapter__subject__is_active=True,
+        )
+        .select_related(
+            "chapter",
+        )
+        .order_by(
+            "chapter__name",
+            "created_at",
+        )
+    )
+
+    # -------------------------------------------------
+    # 5. Existing questions
+    # -------------------------------------------------
+
+    existing_question_ids = set(
+        assessment.assessment_questions.values_list(
+            "question_id",
+            flat=True,
+        )
+    )
+
+    # -------------------------------------------------
+    # 6. POST - Save selected questions
+    # -------------------------------------------------
+
+    if request.method == "POST":
+
+        selected_question_ids = request.POST.getlist("questions")
+
+        # -------------------------------------------------
+        # Get valid questions
+        # -------------------------------------------------
+
+        valid_questions = questions.filter(
+            id__in=selected_question_ids,
+        )
+
+        valid_question_ids = {
+            str(question.id)
+            for question in valid_questions
+        }
+
+        submitted_question_ids = set(
+            selected_question_ids
+        )
+
+        # -------------------------------------------------
+        # Security validation
+        # -------------------------------------------------
+
+        if submitted_question_ids != valid_question_ids:
+            messages.error(
+                request,
+                "One or more selected questions are not valid "
+                "for this assessment.",
+            )
+
+            return redirect(
+                "teacher_assessment_add_questions",
+                assessment_id=assessment.id,
+            )
+
+        # -------------------------------------------------
+        # Synchronize questions
+        # -------------------------------------------------
+
+        with transaction.atomic():
+
+            assessment.assessment_questions.exclude(
+                question_id__in=valid_question_ids,
+            ).delete()
+
+            existing_question_ids = set(
+                assessment.assessment_questions.values_list(
+                    "question_id",
+                    flat=True,
+                )
+            )
+
+            current_max_order = (
+                                    assessment.assessment_questions
+                                    .order_by("-display_order")
+                                    .values_list(
+                                        "display_order",
+                                        flat=True,
+                                    )
+                                    .first()
+                                ) or 0
+
+            for question_id in selected_question_ids:
+
+                question = valid_questions.get(
+                    id=question_id
+                )
+
+                if question.id in existing_question_ids:
+                    continue
+
+                current_max_order += 1
+
+                AssessmentQuestion.objects.create(
+                    assessment=assessment,
+                    question=question,
+                    display_order=current_max_order,
+                )
+
+        # -------------------------------------------------
+        # Rebuild display order
+        # -------------------------------------------------
+
+        assessment_questions = list(
+            assessment.assessment_questions
+            .order_by("display_order")
+        )
+
+        for index, assessment_question in enumerate(
+                assessment_questions,
+                start=1,
+        ):
+
+            if assessment_question.display_order != index:
+                assessment_question.display_order = index
+
+                assessment_question.save(
+                    update_fields=[
+                        "display_order",
+                    ]
+                )
+
+        messages.success(
+            request,
+            "Assessment questions updated successfully.",
+        )
+
+        return redirect(
+            "teacher_assessment_detail",
+            assessment_id=assessment.id,
+        )
+
+
+    # -------------------------------------------------
+    # 7. Display page
+    # -------------------------------------------------
+
+    return render(
+        request,
+        "assessment/teacher_assessment_add_questions.html",
+        {
+            "assessment": assessment,
+            "questions": questions,
+            "existing_question_ids": existing_question_ids,
+        },
+    )
+
+
+@login_required
+def teacher_assessment_publish(request, assessment_id):
+
+    # -------------------------------------------------
+    # 1. Only teachers
+    # -------------------------------------------------
+
+    if request.user.user_type != UserType.TEACHER:
+        return redirect("admin:index")
+
+    # -------------------------------------------------
+    # 2. Get teacher's assessment
+    # -------------------------------------------------
+
+    assessment = get_object_or_404(
+        Assessment.objects.select_related(
+            "subject",
+        ),
+        id=assessment_id,
+        created_by=request.user,
+    )
+
+    # -------------------------------------------------
+    # 3. Assessment must still be Draft
+    # -------------------------------------------------
+
+    if assessment.status != AssessmentStatus.DRAFT:
+
+        messages.error(
+            request,
+            "This assessment has already been published.",
+        )
+
+        return redirect(
+            "teacher_assessment_detail",
+            assessment_id=assessment.id,
+        )
+
+    # -------------------------------------------------
+    # 4. Must contain at least one question
+    # -------------------------------------------------
+
+    question_count = assessment.assessment_questions.count()
+
+    if question_count == 0:
+
+        messages.error(
+            request,
+            "You cannot publish an assessment without questions.",
+        )
+
+        return redirect(
+            "teacher_assessment_detail",
+            assessment_id=assessment.id,
+        )
+
+    # -------------------------------------------------
+    # 5. Publish
+    # -------------------------------------------------
+
+    with transaction.atomic():
+
+        assessment.status = AssessmentStatus.PUBLISHED
+        assessment.is_active = True
+
+        assessment.save(
+            update_fields=[
+                "status",
+                "is_active",
+                "updated_at",
+            ]
+        )
+
+    messages.success(
+        request,
+        "Assessment published successfully.",
+    )
+
+    return redirect(
+        "teacher_assessment_detail",
+        assessment_id=assessment.id,
     )

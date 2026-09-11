@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Subject | SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="mb-4">
+
+        <a href="{% url 'institute_program_subject_list' program.id %}"
+           class="text-decoration-none">
+            ← Back to Subjects
+        </a>
+
+        <h1 class="fw-bold mt-3 mb-1">
+            Create Subject
+        </h1>
+
+        <p class="text-muted mb-0">
+            Create a subject under {{ program.name }}
+        </p>
+
+    </div>
+
+    <div class="card shadow border-0 rounded-3">
+
+        <div class="card-body p-4 p-md-5">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <!-- Program -->
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">
+                        Program
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           value="{{ program.name }}"
+                           readonly>
+
+                    <div class="form-text">
+                        This subject will automatically belong to this program.
+                    </div>
+
+                </div>
+
+                <!-- Subject Name -->
+                <div class="mb-4">
+
+                    <label for="name"
+                           class="form-label fw-semibold">
+                        Subject Name
+                    </label>
+
+                    <input type="text"
+                           name="name"
+                           id="name"
+                           class="form-control form-control-lg"
+                           placeholder="Enter subject name"
+                           maxlength="100"
+                           required>
+
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+
+                    <label for="description"
+                           class="form-label fw-semibold">
+                        Description
+                    </label>
+
+                    <textarea name="description"
+                              id="description"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Enter subject description"></textarea>
+
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+                        Create Subject
+                    </button>
+
+                    <a href="{% url 'institute_program_subject_list' program.id %}"
+                       class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

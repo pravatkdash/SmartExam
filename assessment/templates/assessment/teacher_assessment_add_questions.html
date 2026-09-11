@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Questions | SmartExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <!-- Header -->
+
+    <div class="mb-4">
+
+        <p class="text-primary fw-semibold mb-1">
+            Teacher Portal
+        </p>
+
+        <h2 class="fw-bold mb-1">
+            Add Questions
+        </h2>
+
+        <p class="text-muted mb-0">
+            {{ assessment.name }}
+            -
+            {{ assessment.subject.name }}
+        </p>
+
+    </div>
+
+
+    <!-- Assessment Information -->
+
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <small class="text-muted">
+                        Subject
+                    </small>
+
+                    <div class="fw-semibold">
+                        {{ assessment.subject.name }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted">
+                        Duration
+                    </small>
+
+                    <div class="fw-semibold">
+                        {{ assessment.duration_minutes }}
+                        minutes
+                    </div>
+
+                </div>
+
+
+                <div class="col-md-4">
+
+                    <small class="text-muted">
+                        Current Questions
+                    </small>
+
+                    <div class="fw-semibold">
+                        {{ existing_question_ids|length }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Questions -->
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <div class="card border-0 shadow-sm rounded-3">
+
+            <div class="card-body p-0">
+
+                {% if questions %}
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+
+                                    <th
+                                        class="px-4 py-3"
+                                        style="width:60px;"
+                                    >
+                                        Select
+                                    </th>
+
+                                    <th class="py-3">
+                                        Question
+                                    </th>
+
+                                    <th class="py-3">
+                                        Chapter
+                                    </th>
+
+                                    <th class="py-3">
+                                        Difficulty
+                                    </th>
+
+                                    <th class="py-3">
+                                        Marks
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for question in questions %}
+
+                                    <tr>
+
+                                        <td class="px-4">
+
+                                            <input
+                                                type="checkbox"
+                                                name="questions"
+                                                value="{{ question.id }}"
+                                                class="form-check-input"
+                                                {% if question.id in existing_question_ids %}
+                                                    checked
+                                                {% endif %}
+                                            >
+
+                                        </td>
+
+
+                                        <td>
+
+                                            <div class="fw-semibold">
+
+                                                {{ question.question_text|truncatechars:120 }}
+
+                                            </div>
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {{ question.chapter.name }}
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {{ question.get_difficulty_display }}
+
+                                        </td>
+
+
+                                        <td>
+
+                                            {{ question.marks }}
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="text-center py-5">
+
+                        <div class="fs-1 mb-2">
+                            ❓
+                        </div>
+
+                        <h5 class="fw-semibold">
+                            No questions available
+                        </h5>
+
+                        <p class="text-muted mb-3">
+                            You haven't created any questions
+                            for this subject yet.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="d-flex justify-content-between mt-4">
+
+            <a
+                href="{% url 'teacher_assessment_detail' assessment.id %}"
+                class="btn btn-secondary"
+            >
+                ← Cancel
+            </a>
+
+
+            {% if questions %}
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    Save Questions
+                </button>
+
+            {% endif %}
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

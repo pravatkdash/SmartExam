@@ -1,11 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
+from .forms import UserAdminForm
 from .models import User
 
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
+
+    form = UserAdminForm
 
     ordering = ("email",)
 
@@ -44,6 +47,7 @@ class CustomUserAdmin(UserAdmin):
             {
                 "fields": (
                     "user_type",
+                    "institute",
                     "mobile_verified",
                 )
             },
@@ -83,6 +87,7 @@ class CustomUserAdmin(UserAdmin):
                     "first_name",
                     "last_name",
                     "user_type",
+                    "institute",
                 )
             },
         ),

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from accounts.models import UserType
 from common.models import BaseModel
 
 
@@ -79,38 +80,6 @@ class Subject(BaseModel):
         return f"{self.program.name} - {self.name}"
 
 
-class TeacherAssignment(BaseModel):
-    teacher = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT,
-        related_name="teacher_assignments",
-    )
-
-    subject = models.ForeignKey(
-        Subject,
-        on_delete=models.PROTECT,
-        related_name="teacher_assignments",
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["teacher", "subject"],
-                name="unique_teacher_assignment_per_subject",
-            )
-        ]
-        verbose_name = "Teacher Assignment"
-        verbose_name_plural = "Teacher Assignments"
-
-    def clean(self):
-        if self.teacher and self.teacher.user_type != "TEACHER":
-            raise ValidationError(
-                "Only users with the Teacher role can be assigned to a subject."
-            )
-
-    def __str__(self):
-        return f"{self.teacher} → {self.subject}"
-
 
 class Chapter(BaseModel):
     subject = models.ForeignKey(
@@ -138,3 +107,80 @@ class Chapter(BaseModel):
 
     def __str__(self):
         return f"{self.subject.name} → {self.name}"
+
+
+
+class TeacherAssignment(BaseModel):
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="teacher_assignments",
+    )
+
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.PROTECT,
+        related_name="teacher_assignments",
+        blank=True,
+        null=True,
+    )
+
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.PROTECT,
+        related_name="teacher_assignments",
+        blank=True,
+        null=True,
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(subject__isnull=False)
+                    & models.Q(chapter__isnull=True)
+                )
+                | (
+                    models.Q(subject__isnull=True)
+                    & models.Q(chapter__isnull=False)
+                ),
+                name="teacher_assignment_subject_or_chapter",
+            ),
+            models.UniqueConstraint(
+                fields=["teacher", "subject"],
+                condition=models.Q(subject__isnull=False),
+                name="unique_teacher_subject_assignment",
+            ),
+            models.UniqueConstraint(
+                fields=["teacher", "chapter"],
+                condition=models.Q(chapter__isnull=False),
+                name="unique_teacher_chapter_assignment",
+            ),
+        ]
+
+    def clean(self):
+        if self.teacher and self.teacher.user_type != UserType.TEACHER:
+            raise ValidationError(
+                "Only users with the Teacher role can be assigned."
+            )
+
+        if self.subject and self.chapter:
+            raise ValidationError(
+                "Assignment cannot contain both subject and chapter."
+            )
+
+        if not self.subject and not self.chapter:
+            raise ValidationError(
+                "Assignment must contain either a subject or a chapter."
+            )
+
+        if self.chapter and self.subject:
+            raise ValidationError(
+                "Chapter already belongs to a subject."
+            )
+
+    def __str__(self):
+        if self.subject:
+            return f"{self.teacher} → {self.subject}"
+
+        return f"{self.teacher} → {self.chapter}"

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2>Teachers</h2>
+            <p class="text-muted mb-0">
+                Teachers belonging to your institute
+            </p>
+        </div>
+
+        <a href="{% url 'institute_dashboard' %}"
+           class="btn btn-secondary">
+            Back to Dashboard
+        </a>
+
+
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Teachers</h2>
+            <p class="text-muted mb-0">
+                Manage teachers in your institute.
+            </p>
+        </div>
+
+        <a href="{% url 'institute_teacher_create' %}"
+           class="btn btn-primary">
+            + Add Teacher
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            {% if teachers %}
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for teacher in teachers %}
+
+                                <tr>
+                                    <td>
+                                        {{ teacher.first_name }}
+                                        {{ teacher.last_name }}
+                                    </td>
+
+                                    <td>
+                                        {{ teacher.email }}
+                                    </td>
+
+                                    <td>
+                                        {{ teacher.mobile_number }}
+                                    </td>
+
+                                     <td>
+                                        <a href="{% url 'institute_teacher_assignment' teacher.id %}"
+                                           class="btn btn-sm btn-primary">
+                                            Manage Assignments
+                                        </a>
+                                    </td>
+                                </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            {% else %}
+
+                <div class="text-center py-4">
+
+                    <p class="text-muted mb-3">
+                        No teachers have been created for this institute yet.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

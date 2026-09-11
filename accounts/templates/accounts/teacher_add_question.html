@@ -68,7 +68,11 @@ Add Question - SmartExam
 
         {{ question_formset.management_form }}
 
-        {{ question_formset.non_form_errors }}
+        {% if question_formset.non_form_errors %}
+            <div class="text-danger fw-bold mb-3">
+                {{ question_formset.non_form_errors }}
+            </div>
+        {% endif %}
 
         {% for form in question_formset %}
 

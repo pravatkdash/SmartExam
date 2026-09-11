@@ -56,36 +56,32 @@ class OptionInlineFormSet(BaseInlineFormSet):
     def clean(self):
         super().clean()
 
+        if any(self.errors):
+            return
+
         correct_answers = 0
 
         for form in self.forms:
 
-            print("Cleaned Data:", form.cleaned_data)
-
-            if not hasattr(form, "cleaned_data"):
+            if not form.cleaned_data:
                 continue
 
             if form.cleaned_data.get("DELETE", False):
                 continue
 
-            if not form.cleaned_data:
-                continue
-
-            if form.cleaned_data.get("is_correct"):
+            if form.cleaned_data.get("is_correct", False):
                 correct_answers += 1
 
+        # At least one correct answer is always required
+        if correct_answers == 0:
+            raise ValidationError(
+                "Please select at least one correct option."
+            )
+
+        # For single-answer questions, exactly one is required
         question = self.instance
 
-        if question.is_multiple_answer:
-
-            if correct_answers == 0:
-                raise ValidationError(
-                    "Multiple answer questions must have at least one correct option."
-                )
-
-        else:
-
-            if correct_answers != 1:
-                raise ValidationError(
-                    "Single answer questions must have exactly one correct option."
-                )
+        if not question.is_multiple_answer and correct_answers > 1:
+            raise ValidationError(
+                "Single-answer questions must have exactly one correct option."
+            )

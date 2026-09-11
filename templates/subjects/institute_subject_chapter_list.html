@@ -1,0 +1,35 @@
+    {% extends "base.html" %}
+
+{% block content %}
+
+<div>
+    <h1>Chapters</h1>
+
+    <p>
+        <strong>Program:</strong> {{ program.name }}
+    </p>
+
+    <p>
+        <strong>Subject:</strong> {{ subject.name }}
+    </p>
+
+    <a href="{% url 'institute_subject_chapter_create' program.id subject.id %}">
+        + Add Chapter
+    </a>
+
+    <hr>
+
+    {% if chapters %}
+        <ul>
+            {% for chapter in chapters %}
+                <li>
+                    {{ chapter.name }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No chapters found for this subject.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'subjects',
     'questions',
     'common',
+    'institute_admin',
 ]
 
 MIDDLEWARE = [
