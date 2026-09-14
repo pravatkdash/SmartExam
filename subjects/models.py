@@ -25,11 +25,15 @@ class Institute(BaseModel):
 
 
 class Program(BaseModel):
+
     institute = models.ForeignKey(
         Institute,
         on_delete=models.PROTECT,
         related_name="programs",
+        blank=True,
+        null=True,
     )
+
     name = models.CharField(
         max_length=200,
     )
@@ -48,8 +52,13 @@ class Program(BaseModel):
         verbose_name = "Program"
         verbose_name_plural = "Programs"
 
+
+
     def __str__(self):
-        return f"{self.institute.name} - {self.name}"
+        if self.institute:
+            return f"{self.institute.name} - {self.name}"
+
+        return f"SmartExam - {self.name}"
 
 
 class Subject(BaseModel):
@@ -184,3 +193,29 @@ class TeacherAssignment(BaseModel):
             return f"{self.teacher} → {self.subject}"
 
         return f"{self.teacher} → {self.chapter}"
+
+
+
+class StudentProgramEnrollment(BaseModel):
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="program_enrollments",
+    )
+    program = models.ForeignKey(
+        Program,
+        on_delete=models.PROTECT,
+        related_name="student_enrollments",
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "program"],
+                name="unique_student_program_enrollment",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.student} - {self.program}"

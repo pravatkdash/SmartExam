@@ -27,4 +27,16 @@ urlpatterns = [
         views.teacher_assignment,
         name="institute_teacher_assignment",
     ),
+
+    path(
+        "students/",
+        views.student_list,
+        name="institute_student_list",
+    ),
+
+    path(
+        "students/add/",
+        views.student_create,
+        name="institute_student_create",
+    ),
 ]
