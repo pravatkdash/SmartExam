@@ -285,12 +285,12 @@
 
 
 <!-- Assignment Type Toggle -->
-<script>
 
+<script>
     document.addEventListener("DOMContentLoaded", function () {
 
-        const assignmentType =
-            document.getElementById("id_assignment_type");
+        const assignmentTypes =
+            document.querySelectorAll('input[name="assignment_type"]');
 
         const subjectField =
             document.getElementById("subject-field");
@@ -301,16 +301,21 @@
 
         function updateFields() {
 
-            if (!assignmentType) {
-                return;
-            }
+            let selectedType = null;
 
-            if (assignmentType.value === "subject") {
+            assignmentTypes.forEach(function (radio) {
+                if (radio.checked) {
+                    selectedType = radio.value;
+                }
+            });
+
+
+            if (selectedType === "subject") {
 
                 subjectField.style.display = "block";
                 chapterField.style.display = "none";
 
-            } else {
+            } else if (selectedType === "chapter") {
 
                 subjectField.style.display = "none";
                 chapterField.style.display = "block";
@@ -320,15 +325,14 @@
         }
 
 
-        assignmentType.addEventListener(
-            "change",
-            updateFields
-        );
+        assignmentTypes.forEach(function (radio) {
+            radio.addEventListener("change", updateFields);
+        });
+
 
         updateFields();
 
     });
-
 </script>
 
 {% endblock %}

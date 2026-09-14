@@ -70,10 +70,6 @@ class TeacherAssignmentForm(forms.ModelForm):
                     "Chapter should not be selected for a subject assignment.",
                 )
 
-            # Set the model instance immediately
-            self.instance.subject = subject
-            self.instance.chapter = None
-
         elif assignment_type == "chapter":
 
             if not chapter:
@@ -88,18 +84,22 @@ class TeacherAssignmentForm(forms.ModelForm):
                     "Subject should not be selected for a chapter assignment.",
                 )
 
-            if (
-                chapter
-                and subject
-                and chapter.subject_id != subject.id
-            ):
-                self.add_error(
-                    "chapter",
-                    "Selected chapter does not belong to the selected subject.",
-                )
-
-            # Set the model instance immediately
-            self.instance.subject = None
-            self.instance.chapter = chapter
-
         return cleaned_data
+
+    def save(self, commit=True):
+        assignment = super().save(commit=False)
+
+        assignment.teacher = self.instance.teacher
+
+        if self.cleaned_data["assignment_type"] == "subject":
+            assignment.subject = self.cleaned_data["subject"]
+            assignment.chapter = None
+
+        else:
+            assignment.subject = None
+            assignment.chapter = self.cleaned_data["chapter"]
+
+        if commit:
+            assignment.save()
+
+        return assignment
