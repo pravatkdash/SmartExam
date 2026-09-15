@@ -15,6 +15,7 @@ from subjects.models import TeacherAssignment
 
 @login_required
 def assessment_exam_view(request, attempt_id, question_number):
+
     attempt = get_object_or_404(
         AssessmentAttempt,
         id=attempt_id,
@@ -24,6 +25,7 @@ def assessment_exam_view(request, attempt_id, question_number):
     # -------------------------------------------------
     # 1. Submitted attempt → go directly to result
     # -------------------------------------------------
+
     if attempt.status == AssessmentAttemptStatus.SUBMITTED:
         return redirect(
             "assessment_result",
@@ -33,13 +35,19 @@ def assessment_exam_view(request, attempt_id, question_number):
     # -------------------------------------------------
     # 2. Load attempt questions
     # -------------------------------------------------
+
     attempt_questions = (
         attempt.attempt_questions
-        .select_related("question")
+        .select_related(
+            "question",
+            "answer",
+        )
         .prefetch_related(
             "question__options",
         )
-        .order_by("display_order")
+        .order_by(
+            "display_order",
+        )
     )
 
     total_questions = attempt_questions.count()
@@ -47,14 +55,22 @@ def assessment_exam_view(request, attempt_id, question_number):
     # -------------------------------------------------
     # 3. Validate question number
     # -------------------------------------------------
+
     if question_number < 1 or question_number > total_questions:
+
         return redirect(
             "assessment_exam",
             attempt_id=attempt.id,
             question_number=1,
         )
 
-    attempt_question = attempt_questions[question_number - 1]
+    # -------------------------------------------------
+    # 4. Current question
+    # -------------------------------------------------
+
+    attempt_question = attempt_questions[
+        question_number - 1
+    ]
 
     student_answer = get_object_or_404(
         StudentAnswer,
@@ -62,24 +78,42 @@ def assessment_exam_view(request, attempt_id, question_number):
     )
 
     # -------------------------------------------------
-    # 4. Handle POST
+    # 5. Handle POST
     # -------------------------------------------------
+
     if request.method == "POST":
 
-        navigation = request.POST.get("navigation")
+        navigation = request.POST.get(
+            "navigation"
+        )
 
         # ---------------------------------------------
         # Save current answer
         # ---------------------------------------------
-        option_ids = request.POST.getlist("answers")
+
+        option_ids = request.POST.getlist(
+            "answers"
+        )
 
         options = attempt_question.question.options.filter(
             id__in=option_ids
         )
 
-        student_answer.selected_options.set(options)
+        student_answer.selected_options.set(
+            options
+        )
 
-        student_answer.answered_at = timezone.now()
+        # ---------------------------------------------
+        # Mark answered only if an option is selected
+        # ---------------------------------------------
+
+        if options.exists():
+
+            student_answer.answered_at = timezone.now()
+
+        else:
+
+            student_answer.answered_at = None
 
         student_answer.save(
             update_fields=[
@@ -90,7 +124,9 @@ def assessment_exam_view(request, attempt_id, question_number):
         # ---------------------------------------------
         # Submit Exam
         # ---------------------------------------------
+
         if navigation == "submit":
+
             submit_assessment(attempt)
 
             return redirect(
@@ -99,28 +135,92 @@ def assessment_exam_view(request, attempt_id, question_number):
             )
 
         # ---------------------------------------------
-        # Next question
+        # Jump to question
         # ---------------------------------------------
-        if navigation == "next":
+
+        if navigation == "jump":
+
+            target_question = request.POST.get(
+                "target_question"
+            )
+
+            try:
+
+                target_question = int(
+                    target_question
+                )
+
+            except (
+                TypeError,
+                ValueError,
+            ):
+
+                target_question = question_number
+
+            # -----------------------------------------
+            # Validate target question
+            # -----------------------------------------
+
+            if (
+                1 <= target_question <= total_questions
+            ):
+
+                return redirect(
+                    "assessment_exam",
+                    attempt_id=attempt.id,
+                    question_number=target_question,
+                )
+
             return redirect(
                 "assessment_exam",
                 attempt_id=attempt.id,
-                question_number=question_number + 1,
+                question_number=question_number,
+            )
+
+        # ---------------------------------------------
+        # Next question
+        # ---------------------------------------------
+
+        if navigation == "next":
+
+            if question_number < total_questions:
+
+                return redirect(
+                    "assessment_exam",
+                    attempt_id=attempt.id,
+                    question_number=question_number + 1,
+                )
+
+            return redirect(
+                "assessment_exam",
+                attempt_id=attempt.id,
+                question_number=question_number,
             )
 
         # ---------------------------------------------
         # Previous question
         # ---------------------------------------------
+
         if navigation == "previous":
+
+            if question_number > 1:
+
+                return redirect(
+                    "assessment_exam",
+                    attempt_id=attempt.id,
+                    question_number=question_number - 1,
+                )
+
             return redirect(
                 "assessment_exam",
                 attempt_id=attempt.id,
-                question_number=question_number - 1,
+                question_number=question_number,
             )
 
         # ---------------------------------------------
         # Stay on current question
         # ---------------------------------------------
+
         return redirect(
             "assessment_exam",
             attempt_id=attempt.id,
@@ -128,9 +228,35 @@ def assessment_exam_view(request, attempt_id, question_number):
         )
 
     # -------------------------------------------------
-    # 5. Display question
+    # 6. Display question
     # -------------------------------------------------
+
     options = attempt_question.question.options.all()
+
+    # -------------------------------------------------
+    # 7. Question Navigator
+    # -------------------------------------------------
+
+    navigator_questions = list(
+        attempt_questions
+    )
+
+    for navigator_question in navigator_questions:
+
+        try:
+
+            navigator_question.is_answered = (
+                navigator_question.answer.answered_at
+                is not None
+            )
+
+        except StudentAnswer.DoesNotExist:
+
+            navigator_question.is_answered = False
+
+    # -------------------------------------------------
+    # 8. Render
+    # -------------------------------------------------
 
     return render(
         request,
@@ -142,9 +268,9 @@ def assessment_exam_view(request, attempt_id, question_number):
             "student_answer": student_answer,
             "question_number": question_number,
             "total_questions": total_questions,
+            "navigator_questions": navigator_questions,
         },
     )
-
 
 @login_required
 def assessment_result_view(request, attempt_id):

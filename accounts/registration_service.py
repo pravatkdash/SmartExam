@@ -3,6 +3,12 @@ from django.db import transaction
 from .models import User, UserType
 
 
+from django.db import transaction
+
+from accounts.models import User, UserType
+from subjects.models import Program, StudentProgramEnrollment
+
+
 @transaction.atomic
 def register_student(
     mobile_number,
@@ -23,6 +29,29 @@ def register_student(
         mobile_number=mobile_number,
         user_type=UserType.STUDENT,
         mobile_verified=True,
+    )
+
+    # -------------------------------------------------
+    # Automatically enroll student in SmartExam
+    # default programs.
+    #
+    # SmartExam programs have institute=None.
+    # -------------------------------------------------
+
+    default_programs = Program.objects.filter(
+        institute__isnull=True,
+        is_active=True,
+    )
+
+    StudentProgramEnrollment.objects.bulk_create(
+        [
+            StudentProgramEnrollment(
+                student=student,
+                program=program,
+                is_active=True,
+            )
+            for program in default_programs
+        ]
     )
 
     return student

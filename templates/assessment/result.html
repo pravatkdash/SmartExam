@@ -40,10 +40,50 @@
 
             </div>
 
+            <div class="mt-4">
+
+                <a
+                    href="{% url 'student_dashboard' %}"
+                    class="btn btn-primary"
+                >
+                    ← Back to Dashboard
+                </a>
+
+            </div>
+
         </div>
 
     </div>
 
 </div>
+
+<script>
+
+    window.history.replaceState(
+        null,
+        "",
+        window.location.href
+    );
+
+    window.history.pushState(
+        null,
+        "",
+        window.location.href
+    );
+
+    window.addEventListener(
+        "popstate",
+        function () {
+
+            window.history.pushState(
+                null,
+                "",
+                window.location.href
+            );
+
+        }
+    );
+
+</script>
 
 {% endblock %}

@@ -182,7 +182,6 @@ def student_login(request):
     )
 
 
-
 @login_required
 def student_dashboard(request):
 
@@ -224,11 +223,29 @@ def student_dashboard(request):
             .first()
         )
 
+    # -------------------------------------------------
+    # Exam History
+    # -------------------------------------------------
+
+    exam_history = (
+        AssessmentAttempt.objects
+        .filter(
+            student=request.user,
+            status=AssessmentAttemptStatus.SUBMITTED,
+        )
+        .select_related(
+            "assessment",
+            "assessment__subject",
+        )
+        .order_by("-submitted_at")
+    )
+
     return render(
         request,
         "accounts/student_dashboard.html",
         {
             "assessments": assessments,
+            "exam_history": exam_history,
         },
     )
 

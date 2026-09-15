@@ -1,29 +1,288 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div>
-    <h1>Complete Registration</h1>
 
-    <p>Your mobile number has been verified.</p>
+<style>
+    .student-complete-page {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f7f8fc;
+        padding: 40px 20px;
+    }
 
-    <form method="post">
-        {% csrf_token %}
+    .student-complete-card {
+        width: 100%;
+        max-width: 500px;
+        background: #ffffff;
+        border: 1px solid #e7e9ef;
+        border-radius: 18px;
+        padding: 36px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+    }
 
-        {{ form.as_p }}
+    .complete-brand {
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-        <hr>
+    .complete-brand-icon {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 16px;
+        border-radius: 14px;
+        background: #1e3a8a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+    }
 
-        <h5>Select Programs</h5>
+    .complete-brand h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: #172554;
+    }
 
-        {{ program_form.programs }}
+    .complete-subtitle {
+        margin-top: 10px;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.5;
+    }
 
-        {% if program_form.programs.errors %}
-            <div class="text-danger">
-                {{ program_form.programs.errors }}
+    .registration-success {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #eaf7f1;
+        border: 1px solid #b7dfce;
+        color: #237a5a;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 24px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .student-complete-form p {
+        margin-bottom: 18px;
+    }
+
+    .student-complete-form label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .student-complete-form input,
+    .student-complete-form select {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 14px;
+        border: 1px solid #dfe3ea;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #1f2937;
+        font-size: 15px;
+        box-sizing: border-box;
+        outline: none;
+    }
+
+    .student-complete-form input:focus,
+    .student-complete-form select:focus {
+        border-color: #1e3a8a;
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.10);
+    }
+
+    .program-section {
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 1px solid #edf0f4;
+    }
+
+    .program-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .program-description {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 16px;
+    }
+
+    .program-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .program-section li {
+        margin-bottom: 10px;
+    }
+
+    .program-section li label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 48px;
+        padding: 10px 14px;
+        margin: 0;
+        border: 1px solid #e3e6ec;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-weight: 500;
+    }
+
+    .program-section li label:hover {
+        background: #fafbff;
+        border-color: #9aa8c7;
+    }
+
+    .program-section li input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        min-height: auto;
+        accent-color: #1e3a8a;
+        cursor: pointer;
+    }
+
+    .program-section ul.errorlist {
+        color: #dc2626;
+        font-size: 13px;
+        margin: 8px 0 0;
+    }
+
+    .complete-button {
+        width: 100%;
+        height: 48px;
+        margin-top: 28px;
+        border: none;
+        border-radius: 10px;
+        background: #1e3a8a;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .complete-button:hover {
+        background: #172554;
+    }
+
+    .complete-footer {
+        text-align: center;
+        margin-top: 22px;
+        padding-top: 20px;
+        border-top: 1px solid #edf0f4;
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+
+        .student-complete-page {
+            padding: 24px 16px;
+        }
+
+        .student-complete-card {
+            padding: 28px 22px;
+        }
+
+        .complete-brand h1 {
+            font-size: 23px;
+        }
+    }
+</style>
+
+
+<div class="student-complete-page">
+
+    <div class="student-complete-card">
+
+        <div class="complete-brand">
+
+            <div class="complete-brand-icon">
+                SE
             </div>
-        {% endif %}
 
-        <button type="submit">Create Account</button>
-    </form>
+            <h1>
+                Complete registration
+            </h1>
+
+            <div class="complete-subtitle">
+                Your mobile number has been verified.
+                Just select the programs you want to access.
+            </div>
+
+        </div>
+
+
+        <div class="registration-success">
+            ✓ Mobile number verified successfully
+        </div>
+
+
+        <form
+            method="post"
+            class="student-complete-form"
+        >
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+
+            <div class="program-section">
+
+                <div class="program-title">
+                    Select Programs
+                </div>
+
+                <div class="program-description">
+                    Choose the programs you want to enroll in.
+                </div>
+
+                {{ program_form.programs }}
+
+                {% if program_form.programs.errors %}
+
+                    <div class="text-danger mt-2">
+                        {{ program_form.programs.errors }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="complete-button"
+            >
+                Create Student Account
+            </button>
+
+        </form>
+
+
+        <div class="complete-footer">
+            SmartExam Student Portal
+        </div>
+
+    </div>
+
 </div>
+
 {% endblock %}
