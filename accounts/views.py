@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from django.http import HttpResponse
 
-from accounts.forms import TeacherLoginForm
+from accounts.forms import TeacherLoginForm, StudentProgramSelectionForm
 from accounts.mobile_number_forms import StudentMobileForm
 from accounts.models import OTPPurpose, UserType
 from accounts.otp_forms import StudentOTPForm
@@ -17,11 +17,11 @@ from accounts.registration_service import register_student
 from accounts.student_login_forms import StudentLoginForm
 from accounts.student_login_service import authenticate_student
 from accounts.student_registration_forms import StudentRegistrationForm
-from assessment.models import Assessment, AssessmentAttempt, AssessmentAttemptStatus
+from assessment.models import Assessment, AssessmentAttempt, AssessmentAttemptStatus, AssessmentStatus
 from questions.models import Question
 from questions.question_service import is_question_locked, get_question_lock_message
 from questions.teacher_forms import TeacherQuestionForm, TeacherOptionAddFormSet, TeacherOptionFormSet
-from subjects.models import TeacherAssignment
+from subjects.models import TeacherAssignment, StudentProgramEnrollment
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -102,8 +102,13 @@ def student_registration_details(request):
 
     if request.method == "POST":
         form = StudentRegistrationForm(request.POST)
+        program_form = StudentProgramSelectionForm(request.POST)
 
-        if form.is_valid():
+        if form.is_valid() and program_form.is_valid():
+            # For now, just verify both forms.
+            # Enrollment will be added in the next step.
+            print(program_form.cleaned_data["programs"])
+
             try:
                 register_student(
                     mobile_number=mobile_number,
@@ -112,7 +117,6 @@ def student_registration_details(request):
                     email=form.cleaned_data["email"] or None,
                 )
 
-                # Registration completed.
                 request.session.pop("registration_mobile", None)
                 request.session.pop("registration_mobile_verified", None)
 
@@ -123,11 +127,15 @@ def student_registration_details(request):
 
     else:
         form = StudentRegistrationForm()
+        program_form = StudentProgramSelectionForm()
 
     return render(
         request,
         "accounts/student_registration_details.html",
-        {"form": form},
+        {
+            "form": form,
+            "program_form": program_form,
+        },
     )
 
 
@@ -181,8 +189,14 @@ def student_dashboard(request):
     if request.user.user_type != UserType.STUDENT:
         return redirect("home")
 
+    enrolled_program_ids = StudentProgramEnrollment.objects.filter(
+        student=request.user,
+        is_active=True,
+    ).values_list("program_id", flat=True)
+
     assessments = Assessment.objects.filter(
-        status="PUBLISHED",
+        subject__program_id__in=enrolled_program_ids,
+        status=AssessmentStatus.PUBLISHED,
         is_active=True,
     ).order_by("name")
 

@@ -50,7 +50,7 @@ class User(AbstractUser):
     objects = UserManager()
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.email})"
+        return f"{self.first_name} {self.last_name} {self.mobile_number} ({self.email})"
 
 
 class OTPPurpose(models.TextChoices):

@@ -1,6 +1,7 @@
 from django import forms
 
 from accounts.models import User, UserType
+from subjects.models import Program
 
 
 class UserAdminForm(forms.ModelForm):
@@ -55,6 +56,23 @@ class TeacherLoginForm(forms.Form):
             }
         )
     )
+
+
+class StudentProgramSelectionForm(forms.Form):
+    programs = forms.ModelMultipleChoiceField(
+        queryset=Program.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Select Programs",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["programs"].queryset = Program.objects.filter(
+            institute__isnull=True,
+            is_active=True,
+        ).order_by("name")
 
 
 

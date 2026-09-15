@@ -11,6 +11,18 @@
 
         {{ form.as_p }}
 
+        <hr>
+
+        <h5>Select Programs</h5>
+
+        {{ program_form.programs }}
+
+        {% if program_form.programs.errors %}
+            <div class="text-danger">
+                {{ program_form.programs.errors }}
+            </div>
+        {% endif %}
+
         <button type="submit">Create Account</button>
     </form>
 </div>
