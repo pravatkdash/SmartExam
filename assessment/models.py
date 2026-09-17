@@ -11,10 +11,14 @@ class AssessmentStatus(models.TextChoices):
 
 
 class Assessment(BaseModel):
-    subject = models.ForeignKey(
-        "subjects.Subject",
+
+
+    program = models.ForeignKey(
+        "subjects.Program",
         on_delete=models.PROTECT,
         related_name="assessments",
+        null=True,
+        blank=True,
     )
 
     name = models.CharField(
@@ -42,7 +46,7 @@ class Assessment(BaseModel):
 
     class Meta:
         ordering = [
-            "subject",
+            "program",
             "name",
         ]
 
@@ -50,15 +54,16 @@ class Assessment(BaseModel):
             models.UniqueConstraint(
                 fields=[
                     "created_by",
-                    "subject",
+                    "program",
                     "name",
                 ],
-                name="unique_assessment_name_per_teacher_per_subject",
+                name="unique_assessment_name_per_teacher_per_program",
             )
         ]
 
     def __str__(self):
-        return f"{self.subject} → {self.name}"
+        return f"{self.program} → {self.name}"
+
 
 
 class AssessmentQuestion(BaseModel):

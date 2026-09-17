@@ -1,88 +1,828 @@
-<form method="post">
+<style>
+    /* ========================================
+       SmartExam - Student Exam Page
+       ======================================== */
 
-    {% csrf_token %}
+    .exam-page {
+        min-height: 100vh;
+        background: #f7f8fc;
+    }
 
-    <p>
-        Question {{ question_number }} of {{ total_questions }}
-    </p>
+    /* ========================================
+       Header
+       ======================================== */
 
-    <h4>
-        {{ attempt_question.question.question_text }}
-    </h4>
+    .exam-header {
+        height: 64px;
+        background: #ffffff;
+        border-bottom: 1px solid #e9ebf0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px;
+    }
 
-    {% for option in options %}
+    .exam-brand {
+        font-size: 20px;
+        font-weight: 700;
+        color: #172554;
+    }
 
-        <div class="form-check mb-3">
+    .exam-student {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 600;
+    }
 
-            <input
-                class="form-check-input"
-                type="{% if attempt_question.question.is_multiple_answer %}checkbox{% else %}radio{% endif %}"
-                name="answers"
-                value="{{ option.id }}"
-                id="option{{ option.id }}"
+    .exam-progress-area {
+        width: 320px;
+        text-align: center;
+    }
 
-                {% if option in student_answer.selected_options.all %}
-                    checked
-                {% endif %}
-            >
+    .exam-progress {
+        height: 6px;
+        background: #e9edf5;
+        border-radius: 10px;
+        overflow: hidden;
+    }
 
-            <label
-                class="form-check-label"
-                for="option{{ option.id }}"
-            >
-                {{ option.option_text }}
-            </label>
+    .exam-progress-bar {
+        height: 100%;
+        width: {% widthratio question_number total_questions 100 %}%;
+        background: #1e3a8a;
+        border-radius: 10px;
+    }
+
+    .exam-progress-text {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 5px;
+    }
+
+    .exam-timer {
+        min-width: 80px;
+        text-align: right;
+        font-size: 15px;
+        font-weight: 700;
+        color: #6b7280;
+    }
+
+    .exam-timer.warning {
+        color: #c2410c;
+    }
+
+    .exam-timer.danger {
+        color: #dc2626;
+    }
+
+    /* ========================================
+       Main Content
+       ======================================== */
+
+    .exam-content {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 32px 24px 40px;
+    }
+
+    .exam-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 250px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .question-section {
+        min-width: 0;
+    }
+
+    /* ========================================
+       Question Card
+       ======================================== */
+
+    .question-card {
+        background: #ffffff;
+        border: 1px solid #e7e9ef;
+        border-radius: 16px;
+        padding: 28px 30px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .question-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 10px;
+    }
+
+    .question-text {
+        font-size: 21px;
+        line-height: 1.5;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+    }
+
+    /* ========================================
+       Answer Options
+       ======================================== */
+
+    .answer-option {
+        position: relative;
+        margin-bottom: 12px;
+    }
+
+    .answer-option input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .answer-label {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        min-height: 64px;
+        padding: 14px 18px;
+        background: #ffffff;
+        border: 1px solid #e3e6ec;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        box-sizing: border-box;
+    }
+
+    .answer-label:hover {
+        border-color: #9aa8c7;
+        background: #fafbff;
+        transform: translateY(-1px);
+    }
+
+    .option-letter {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        border-radius: 50%;
+        background: #f1f3f7;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .option-text {
+        font-size: 16px;
+        color: #374151;
+        line-height: 1.4;
+    }
+
+    /* Selected */
+
+    .answer-option input:checked + .answer-label {
+        border-color: #1e3a8a;
+        background: #f3f6ff;
+        box-shadow: 0 0 0 1px #1e3a8a;
+    }
+
+    .answer-option input:checked + .answer-label .option-letter {
+        background: #1e3a8a;
+        color: #ffffff;
+    }
+
+    .answer-option input:checked + .answer-label .option-text {
+        color: #172554;
+        font-weight: 600;
+    }
+
+    /* ========================================
+       Navigation
+       ======================================== */
+
+    .question-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 28px;
+    }
+
+    .nav-button {
+        min-width: 110px;
+        height: 44px;
+        border-radius: 10px;
+        padding: 0 20px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .previous-button {
+        background: #ffffff;
+        border: 1px solid #e1e5ec;
+        color: #6b7280;
+    }
+
+    .previous-button:hover {
+        background: #f9fafb;
+        color: #374151;
+    }
+
+    .next-button {
+        background: #1e3a8a;
+        border: 1px solid #1e3a8a;
+        color: #ffffff;
+    }
+
+    .next-button:hover {
+        background: #172554;
+    }
+
+    .submit-button {
+        background: #24966f;
+        border: 1px solid #24966f;
+        color: #ffffff;
+    }
+
+    .submit-button:hover {
+        background: #1f7f5e;
+    }
+
+    /* ========================================
+       Question Palette
+       ======================================== */
+
+    .question-palette {
+        background: #ffffff;
+        border: 1px solid #e7e9ef;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .palette-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .palette-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .palette-count {
+        font-size: 12px;
+        color: #9ca3af;
+        font-weight: 600;
+    }
+
+    .question-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .question-number {
+        height: 40px;
+        border-radius: 9px;
+        border: 1px solid #e3e6ec;
+        background: #ffffff;
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .question-number:hover {
+        border-color: #1e3a8a;
+    }
+
+    .question-number.current {
+        background: #1e3a8a;
+        border-color: #1e3a8a;
+        color: #ffffff;
+    }
+
+    .question-number.answered {
+        background: #eaf7f1;
+        border-color: #b7dfce;
+        color: #237a5a;
+    }
+
+    .question-number.unanswered {
+        background: #ffffff;
+        color: #6b7280;
+    }
+
+    /* ========================================
+       Legend
+       ======================================== */
+
+    .palette-legend {
+        border-top: 1px solid #edf0f4;
+        padding-top: 16px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 9px;
+    }
+
+    .legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .answered-dot {
+        background: #42a77e;
+    }
+
+    .unanswered-dot {
+        background: #d1d5db;
+    }
+
+    .current-dot {
+        background: #1e3a8a;
+    }
+
+    /* ========================================
+       Mobile
+       ======================================== */
+
+    @media (max-width: 800px) {
+
+        .exam-header {
+            padding: 0 16px;
+        }
+
+        .exam-brand {
+            font-size: 17px;
+        }
+
+        .exam-student {
+            display: none;
+        }
+
+        .exam-progress-area {
+            width: 150px;
+        }
+
+        .exam-content {
+            padding: 20px 16px 30px;
+        }
+
+        .exam-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .question-palette {
+            display: none;
+        }
+
+        .question-card {
+            padding: 22px;
+        }
+
+        .question-text {
+            font-size: 18px;
+        }
+
+        .answer-label {
+            min-height: 58px;
+        }
+
+        .option-text {
+            font-size: 15px;
+        }
+
+        .exam-timer {
+            font-size: 14px;
+            min-width: 65px;
+        }
+    }
+</style>
+
+
+<div class="exam-page">
+
+    <!-- ========================================
+         HEADER
+         ======================================== -->
+
+    <div class="exam-header">
+
+        <div class="exam-brand">
+            SmartExam
+        </div>
+
+
+        <div class="exam-student">
+            👤
+            {{ request.user.get_full_name|default:request.user.mobile_number }}
+        </div>
+
+
+        <div class="exam-progress-area">
+
+            <div class="exam-progress">
+
+                <div class="exam-progress-bar"></div>
+
+            </div>
+
+            <div class="exam-progress-text">
+                Question {{ question_number }} of {{ total_questions }}
+            </div>
 
         </div>
 
-    {% endfor %}
 
-    <hr>
-
-    <div class="d-flex justify-content-between">
-
-        {% if question_number > 1 %}
-
-            <button
-                type="submit"
-                name="navigation"
-                value="previous"
-                class="btn btn-secondary"
-            >
-                ← Previous
-            </button>
-
-        {% else %}
-
-            <span></span>
-
-        {% endif %}
-
-
-        {% if question_number < total_questions %}
-
-            <button
-                type="submit"
-                name="navigation"
-                value="next"
-                class="btn btn-primary"
-            >
-                Next →
-            </button>
-
-        {% else %}
-
-            <button
-                type="submit"
-                name="navigation"
-                value="submit"
-                class="btn btn-success"
-            >
-                Submit Exam
-            </button>
-
-        {% endif %}
+        <div
+            class="exam-timer"
+            id="exam-timer"
+            data-expires-at="{{ attempt.expires_at|date:'c' }}"
+        >
+            ⏱ --:--
+        </div>
 
     </div>
 
-</form>
+
+    <!-- ========================================
+         MAIN CONTENT
+         ======================================== -->
+
+    <div class="exam-content">
+
+        <form
+            method="post"
+            id="exam-form"
+        >
+
+            {% csrf_token %}
+
+            <!-- Hidden target question for navigator -->
+
+            <input
+                type="hidden"
+                name="target_question"
+                id="target-question"
+                value=""
+            >
+
+
+            <div class="exam-layout">
+
+
+                <!-- ==================================
+                     LEFT: QUESTION
+                     ================================== -->
+
+                <div class="question-section">
+
+
+                    <!-- Question Card -->
+
+                    <div class="question-card">
+
+                        <div class="question-label">
+                            Question {{ question_number }}
+                        </div>
+
+                        <p class="question-text">
+                            {{ attempt_question.question.question_text }}
+                        </p>
+
+                    </div>
+
+
+                    <!-- Answer Options -->
+
+                    {% for option in options %}
+
+                        <div class="answer-option">
+
+                            <input
+                                class="form-check-input"
+                                type="{% if attempt_question.question.is_multiple_answer %}checkbox{% else %}radio{% endif %}"
+                                name="answers"
+                                value="{{ option.id }}"
+                                id="option{{ option.id }}"
+
+                                {% if option in student_answer.selected_options.all %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            <label
+                                class="answer-label"
+                                for="option{{ option.id }}"
+                            >
+
+                                <span class="option-letter">
+
+                                    {% if forloop.counter == 1 %}
+                                        A
+                                    {% elif forloop.counter == 2 %}
+                                        B
+                                    {% elif forloop.counter == 3 %}
+                                        C
+                                    {% elif forloop.counter == 4 %}
+                                        D
+                                    {% elif forloop.counter == 5 %}
+                                        E
+                                    {% elif forloop.counter == 6 %}
+                                        F
+                                    {% endif %}
+
+                                </span>
+
+                                <span class="option-text">
+                                    {{ option.option_text }}
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    {% endfor %}
+
+
+                    <!-- Navigation -->
+
+                    <div class="question-navigation">
+
+
+                        {% if question_number > 1 %}
+
+                            <button
+                                type="submit"
+                                name="navigation"
+                                value="previous"
+                                class="nav-button previous-button"
+                            >
+                                ← Previous
+                            </button>
+
+                        {% else %}
+
+                            <span></span>
+
+                        {% endif %}
+
+
+                        {% if question_number < total_questions %}
+
+                            <button
+                                type="submit"
+                                name="navigation"
+                                value="next"
+                                class="nav-button next-button"
+                            >
+                                Next →
+                            </button>
+
+                        {% else %}
+
+                            <button
+                                type="submit"
+                                name="navigation"
+                                value="submit"
+                                class="nav-button submit-button"
+                            >
+                                Submit Exam
+                            </button>
+
+                        {% endif %}
+
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================
+                     RIGHT: QUESTION NAVIGATOR
+                     ================================== -->
+
+                <aside class="question-palette">
+
+                    <div class="palette-header">
+
+                        <div class="palette-title">
+                            Questions
+                        </div>
+
+                        <div class="palette-count">
+                            {{ question_number }}/{{ total_questions }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="question-grid">
+
+                        {% for navigator_question in navigator_questions %}
+
+                            <button
+                                type="submit"
+                                name="navigation"
+                                value="jump"
+                                class="
+                                    question-number
+
+                                    {% if forloop.counter == question_number %}
+
+                                        current
+
+                                    {% elif navigator_question.is_answered %}
+
+                                        answered
+
+                                    {% else %}
+
+                                        unanswered
+
+                                    {% endif %}
+                                "
+                                onclick="
+                                    document.getElementById(
+                                        'target-question'
+                                    ).value='{{ forloop.counter }}';
+                                "
+                            >
+                                {{ forloop.counter }}
+                            </button>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Legend -->
+
+                    <div class="palette-legend">
+
+                        <div class="legend-item">
+
+                            <span class="legend-dot answered-dot"></span>
+
+                            Answered
+
+                        </div>
+
+
+                        <div class="legend-item">
+
+                            <span class="legend-dot unanswered-dot"></span>
+
+                            Unanswered
+
+                        </div>
+
+
+                        <div class="legend-item">
+
+                            <span class="legend-dot current-dot"></span>
+
+                            Current
+
+                        </div>
+
+                    </div>
+
+                </aside>
+
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================
+     EXAM TIMER
+     ========================================= -->
+
+<script>
+
+    (function () {
+
+        const timerElement =
+            document.getElementById("exam-timer");
+
+        const examForm =
+            document.getElementById("exam-form");
+
+        if (!timerElement || !examForm) {
+            return;
+        }
+
+        const expiresAt =
+            new Date(
+                timerElement.dataset.expiresAt
+            ).getTime();
+
+        function updateTimer() {
+
+            const now =
+                new Date().getTime();
+
+            let remaining =
+                Math.floor(
+                    (expiresAt - now) / 1000
+                );
+
+            if (remaining <= 0) {
+
+                timerElement.textContent =
+                    "⏱ 00:00";
+
+                /*
+                 * Automatically submit the exam.
+                 */
+
+                const submitInput =
+                    document.createElement("input");
+
+                submitInput.type = "hidden";
+                submitInput.name = "navigation";
+                submitInput.value = "submit";
+
+                examForm.appendChild(
+                    submitInput
+                );
+
+                examForm.submit();
+
+                return;
+            }
+
+            const minutes =
+                Math.floor(
+                    remaining / 60
+                );
+
+            const seconds =
+                remaining % 60;
+
+            timerElement.textContent =
+                "⏱ " +
+                String(minutes).padStart(2, "0") +
+                ":" +
+                String(seconds).padStart(2, "0");
+
+            /*
+             * Visual warning
+             */
+
+            timerElement.classList.remove(
+                "warning",
+                "danger"
+            );
+
+            if (remaining <= 60) {
+
+                timerElement.classList.add(
+                    "danger"
+                );
+
+            } else if (remaining <= 300) {
+
+                timerElement.classList.add(
+                    "warning"
+                );
+
+            }
+        }
+
+        updateTimer();
+
+        const timerInterval =
+            setInterval(
+                updateTimer,
+                1000
+            );
+
+    })();
+
+</script>

@@ -70,7 +70,7 @@ class StudentProgramSelectionForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         self.fields["programs"].queryset = Program.objects.filter(
-            institute__isnull=True,
+            access=Program.ProgramAccess.PUBLIC,
             is_active=True,
         ).order_by("name")
 

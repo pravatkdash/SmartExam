@@ -1,7 +1,6 @@
 from django.db import transaction
 
-from .models import User, UserType
-
+from accounts.models import User, UserType
 
 @transaction.atomic
 def register_student(

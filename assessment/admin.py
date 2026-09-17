@@ -25,29 +25,26 @@ class AssessmentQuestionAdmin(admin.ModelAdmin):
     )
 
 
-
 @admin.register(Assessment)
 class AssessmentAdmin(admin.ModelAdmin):
     form = AssessmentAdminForm
 
     list_display = (
-        "subject",
-        "assessment_name",
-        "duration",
+        "program",
+        "name",
+        "duration_minutes",
         "status",
-        "is_active",
+        "created_by",
+    )
+
+    list_filter = (
+        "program",
+        "status",
     )
 
     search_fields = (
         "name",
-        "subject__name",
-        "subject__program__name",
-    )
-
-    list_filter = (
-        "subject",
-        "status",
-        "is_active",
+        "program__name",
     )
 
     fieldsets = (
@@ -55,7 +52,7 @@ class AssessmentAdmin(admin.ModelAdmin):
             "Assessment Information",
             {
                 "fields": (
-                    "subject",
+                    "program",
                     "name",
                     "description",
                 ),

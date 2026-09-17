@@ -15,6 +15,7 @@ from subjects.models import TeacherAssignment
 
 @login_required
 def assessment_exam_view(request, attempt_id, question_number):
+
     attempt = get_object_or_404(
         AssessmentAttempt,
         id=attempt_id,
@@ -24,6 +25,7 @@ def assessment_exam_view(request, attempt_id, question_number):
     # -------------------------------------------------
     # 1. Submitted attempt → go directly to result
     # -------------------------------------------------
+
     if attempt.status == AssessmentAttemptStatus.SUBMITTED:
         return redirect(
             "assessment_result",
@@ -33,13 +35,19 @@ def assessment_exam_view(request, attempt_id, question_number):
     # -------------------------------------------------
     # 2. Load attempt questions
     # -------------------------------------------------
+
     attempt_questions = (
         attempt.attempt_questions
-        .select_related("question")
+        .select_related(
+            "question",
+            "answer",
+        )
         .prefetch_related(
             "question__options",
         )
-        .order_by("display_order")
+        .order_by(
+            "display_order",
+        )
     )
 
     total_questions = attempt_questions.count()
@@ -47,14 +55,22 @@ def assessment_exam_view(request, attempt_id, question_number):
     # -------------------------------------------------
     # 3. Validate question number
     # -------------------------------------------------
+
     if question_number < 1 or question_number > total_questions:
+
         return redirect(
             "assessment_exam",
             attempt_id=attempt.id,
             question_number=1,
         )
 
-    attempt_question = attempt_questions[question_number - 1]
+    # -------------------------------------------------
+    # 4. Current question
+    # -------------------------------------------------
+
+    attempt_question = attempt_questions[
+        question_number - 1
+    ]
 
     student_answer = get_object_or_404(
         StudentAnswer,
@@ -62,24 +78,42 @@ def assessment_exam_view(request, attempt_id, question_number):
     )
 
     # -------------------------------------------------
-    # 4. Handle POST
+    # 5. Handle POST
     # -------------------------------------------------
+
     if request.method == "POST":
 
-        navigation = request.POST.get("navigation")
+        navigation = request.POST.get(
+            "navigation"
+        )
 
         # ---------------------------------------------
         # Save current answer
         # ---------------------------------------------
-        option_ids = request.POST.getlist("answers")
+
+        option_ids = request.POST.getlist(
+            "answers"
+        )
 
         options = attempt_question.question.options.filter(
             id__in=option_ids
         )
 
-        student_answer.selected_options.set(options)
+        student_answer.selected_options.set(
+            options
+        )
 
-        student_answer.answered_at = timezone.now()
+        # ---------------------------------------------
+        # Mark answered only if an option is selected
+        # ---------------------------------------------
+
+        if options.exists():
+
+            student_answer.answered_at = timezone.now()
+
+        else:
+
+            student_answer.answered_at = None
 
         student_answer.save(
             update_fields=[
@@ -90,7 +124,9 @@ def assessment_exam_view(request, attempt_id, question_number):
         # ---------------------------------------------
         # Submit Exam
         # ---------------------------------------------
+
         if navigation == "submit":
+
             submit_assessment(attempt)
 
             return redirect(
@@ -99,28 +135,92 @@ def assessment_exam_view(request, attempt_id, question_number):
             )
 
         # ---------------------------------------------
-        # Next question
+        # Jump to question
         # ---------------------------------------------
-        if navigation == "next":
+
+        if navigation == "jump":
+
+            target_question = request.POST.get(
+                "target_question"
+            )
+
+            try:
+
+                target_question = int(
+                    target_question
+                )
+
+            except (
+                TypeError,
+                ValueError,
+            ):
+
+                target_question = question_number
+
+            # -----------------------------------------
+            # Validate target question
+            # -----------------------------------------
+
+            if (
+                1 <= target_question <= total_questions
+            ):
+
+                return redirect(
+                    "assessment_exam",
+                    attempt_id=attempt.id,
+                    question_number=target_question,
+                )
+
             return redirect(
                 "assessment_exam",
                 attempt_id=attempt.id,
-                question_number=question_number + 1,
+                question_number=question_number,
+            )
+
+        # ---------------------------------------------
+        # Next question
+        # ---------------------------------------------
+
+        if navigation == "next":
+
+            if question_number < total_questions:
+
+                return redirect(
+                    "assessment_exam",
+                    attempt_id=attempt.id,
+                    question_number=question_number + 1,
+                )
+
+            return redirect(
+                "assessment_exam",
+                attempt_id=attempt.id,
+                question_number=question_number,
             )
 
         # ---------------------------------------------
         # Previous question
         # ---------------------------------------------
+
         if navigation == "previous":
+
+            if question_number > 1:
+
+                return redirect(
+                    "assessment_exam",
+                    attempt_id=attempt.id,
+                    question_number=question_number - 1,
+                )
+
             return redirect(
                 "assessment_exam",
                 attempt_id=attempt.id,
-                question_number=question_number - 1,
+                question_number=question_number,
             )
 
         # ---------------------------------------------
         # Stay on current question
         # ---------------------------------------------
+
         return redirect(
             "assessment_exam",
             attempt_id=attempt.id,
@@ -128,9 +228,35 @@ def assessment_exam_view(request, attempt_id, question_number):
         )
 
     # -------------------------------------------------
-    # 5. Display question
+    # 6. Display question
     # -------------------------------------------------
+
     options = attempt_question.question.options.all()
+
+    # -------------------------------------------------
+    # 7. Question Navigator
+    # -------------------------------------------------
+
+    navigator_questions = list(
+        attempt_questions
+    )
+
+    for navigator_question in navigator_questions:
+
+        try:
+
+            navigator_question.is_answered = (
+                navigator_question.answer.answered_at
+                is not None
+            )
+
+        except StudentAnswer.DoesNotExist:
+
+            navigator_question.is_answered = False
+
+    # -------------------------------------------------
+    # 8. Render
+    # -------------------------------------------------
 
     return render(
         request,
@@ -142,9 +268,9 @@ def assessment_exam_view(request, attempt_id, question_number):
             "student_answer": student_answer,
             "question_number": question_number,
             "total_questions": total_questions,
+            "navigator_questions": navigator_questions,
         },
     )
-
 
 @login_required
 def assessment_result_view(request, attempt_id):
@@ -197,8 +323,8 @@ def teacher_assessment_list(request):
             created_by=request.user,
         )
         .select_related(
-            "subject",
-            "subject__program",
+            "program",
+            "program__institute",
         )
         .order_by(
             "-created_at",
@@ -212,7 +338,6 @@ def teacher_assessment_list(request):
             "assessments": assessments,
         },
     )
-
 
 
 @login_required
@@ -245,16 +370,22 @@ def teacher_assessment_create(request):
         duration_minutes = request.POST.get("duration_minutes")
 
         # ---------------------------------------------
-        # Validate subject
+        # Validate subject assignment
         # ---------------------------------------------
 
-        subject = get_object_or_404(
-            TeacherAssignment.objects.select_related("subject"),
+        assignment = get_object_or_404(
+            TeacherAssignment.objects.select_related(
+                "subject",
+                "subject__program",
+            ),
             teacher=request.user,
             subject_id=subject_id,
             is_active=True,
             subject__is_active=True,
-        ).subject
+        )
+
+        subject = assignment.subject
+        program = subject.program
 
         # ---------------------------------------------
         # Basic validation
@@ -289,13 +420,13 @@ def teacher_assessment_create(request):
 
             if Assessment.objects.filter(
                 created_by=request.user,
-                subject=subject,
+                program=program,
                 name=name,
             ).exists():
 
                 errors.append(
                     "You already have an assessment with this name "
-                    "for this subject."
+                    "for this program."
                 )
 
         # ---------------------------------------------
@@ -314,7 +445,7 @@ def teacher_assessment_create(request):
             # -----------------------------------------
 
             assessment = Assessment.objects.create(
-                subject=subject,
+                program=program,
                 name=name,
                 description=description,
                 duration_minutes=duration_minutes,
@@ -351,8 +482,8 @@ def teacher_assessment_detail(request, assessment_id):
 
     assessment = get_object_or_404(
         Assessment.objects.select_related(
-            "subject",
-            "subject__program",
+            "program",
+            "program__institute",
         ),
         id=assessment_id,
         created_by=request.user,
@@ -379,7 +510,6 @@ def teacher_assessment_detail(request, assessment_id):
     )
 
 
-
 @login_required
 def teacher_assessment_add_questions(request, assessment_id):
 
@@ -396,8 +526,8 @@ def teacher_assessment_add_questions(request, assessment_id):
 
     assessment = get_object_or_404(
         Assessment.objects.select_related(
-            "subject",
-            "subject__program",
+            "program",
+            "program__institute",
         ),
         id=assessment_id,
         created_by=request.user,
@@ -420,13 +550,13 @@ def teacher_assessment_add_questions(request, assessment_id):
         )
 
     # -------------------------------------------------
-    # 4. Get teacher's questions for this subject
+    # 4. Get teacher's questions for this program
     # -------------------------------------------------
 
     questions = (
         Question.objects
         .filter(
-            chapter__subject=assessment.subject,
+            chapter__subject__program=assessment.program,
             created_by=request.user,
             is_active=True,
             chapter__is_active=True,
@@ -511,14 +641,14 @@ def teacher_assessment_add_questions(request, assessment_id):
             )
 
             current_max_order = (
-                                    assessment.assessment_questions
-                                    .order_by("-display_order")
-                                    .values_list(
-                                        "display_order",
-                                        flat=True,
-                                    )
-                                    .first()
-                                ) or 0
+                assessment.assessment_questions
+                .order_by("-display_order")
+                .values_list(
+                    "display_order",
+                    flat=True,
+                )
+                .first()
+            ) or 0
 
             for question_id in selected_question_ids:
 
@@ -547,8 +677,8 @@ def teacher_assessment_add_questions(request, assessment_id):
         )
 
         for index, assessment_question in enumerate(
-                assessment_questions,
-                start=1,
+            assessment_questions,
+            start=1,
         ):
 
             if assessment_question.display_order != index:
@@ -569,7 +699,6 @@ def teacher_assessment_add_questions(request, assessment_id):
             "teacher_assessment_detail",
             assessment_id=assessment.id,
         )
-
 
     # -------------------------------------------------
     # 7. Display page
@@ -602,7 +731,7 @@ def teacher_assessment_publish(request, assessment_id):
 
     assessment = get_object_or_404(
         Assessment.objects.select_related(
-            "subject",
+            "program",
         ),
         id=assessment_id,
         created_by=request.user,

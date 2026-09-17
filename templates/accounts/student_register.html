@@ -1,15 +1,243 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div>
-    <h1>Student Registration</h1>
 
-    <form method="post">
-        {% csrf_token %}
+<style>
+    .student-register-page {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f7f8fc;
+        padding: 40px 20px;
+    }
 
-        {{ form.as_p }}
+    .student-register-card {
+        width: 100%;
+        max-width: 460px;
+        background: #ffffff;
+        border: 1px solid #e7e9ef;
+        border-radius: 18px;
+        padding: 36px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+    }
 
-        <button type="submit">Send OTP</button>
-    </form>
+    .register-brand {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .register-brand-icon {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 16px;
+        border-radius: 14px;
+        background: #1e3a8a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .register-brand h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: #172554;
+    }
+
+    .register-subtitle {
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .student-register-form p {
+        margin-bottom: 18px;
+    }
+
+    .student-register-form label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .student-register-form input {
+        width: 100%;
+        height: 48px;
+        padding: 0 14px;
+        border: 1px solid #dfe3ea;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #1f2937;
+        font-size: 15px;
+        box-sizing: border-box;
+        outline: none;
+        transition: all 0.15s ease;
+    }
+
+    .student-register-form input:focus {
+        border-color: #1e3a8a;
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.10);
+    }
+
+    .student-register-form input::placeholder {
+        color: #9ca3af;
+    }
+
+    .student-register-form ul.errorlist {
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+        color: #dc2626;
+        font-size: 13px;
+    }
+
+    .register-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+        border-radius: 10px;
+        padding: 11px 13px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .register-button {
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 10px;
+        background: #1e3a8a;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        margin-top: 5px;
+    }
+
+    .register-button:hover {
+        background: #172554;
+    }
+
+    .login-section {
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 22px;
+        border-top: 1px solid #edf0f4;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .login-section a {
+        color: #1e3a8a;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .login-section a:hover {
+        text-decoration: underline;
+    }
+
+    .register-footer {
+        text-align: center;
+        margin-top: 22px;
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+
+        .student-register-page {
+            padding: 24px 16px;
+        }
+
+        .student-register-card {
+            padding: 28px 22px;
+        }
+
+        .register-brand h1 {
+            font-size: 23px;
+        }
+    }
+</style>
+
+
+<div class="student-register-page">
+
+    <div class="student-register-card">
+
+        <div class="register-brand">
+
+            <div class="register-brand-icon">
+                SE
+            </div>
+
+            <h1>
+                Create your account
+            </h1>
+
+            <div class="register-subtitle">
+                Register as a student to access assessments
+                and track your exam results.
+            </div>
+
+        </div>
+
+
+        {% if form.non_field_errors %}
+
+            <div class="register-error">
+
+                {{ form.non_field_errors }}
+
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            class="student-register-form"
+        >
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button
+                type="submit"
+                class="register-button"
+            >
+                Send OTP
+            </button>
+
+        </form>
+
+
+        <div class="login-section">
+
+            Already have an account?
+
+            <a href="{% url 'student_login' %}">
+                Sign in
+            </a>
+
+        </div>
+
+
+        <div class="register-footer">
+            SmartExam Student Portal
+        </div>
+
+    </div>
+
 </div>
+
 {% endblock %}
