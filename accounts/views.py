@@ -110,11 +110,23 @@ def student_registration_details(request):
             print(program_form.cleaned_data["programs"])
 
             try:
-                register_student(
+
+                student = register_student(
                     mobile_number=mobile_number,
                     first_name=form.cleaned_data["first_name"],
                     pin=form.cleaned_data["pin"],
                     email=form.cleaned_data["email"] or None,
+                )
+
+                StudentProgramEnrollment.objects.bulk_create(
+                    [
+                        StudentProgramEnrollment(
+                            student=student,
+                            program=program,
+                            is_active=True,
+                        )
+                        for program in program_form.cleaned_data["programs"]
+                    ]
                 )
 
                 request.session.pop("registration_mobile", None)
@@ -194,7 +206,7 @@ def student_dashboard(request):
     ).values_list("program_id", flat=True)
 
     assessments = Assessment.objects.filter(
-        subject__program_id__in=enrolled_program_ids,
+        program_id__in=enrolled_program_ids,
         status=AssessmentStatus.PUBLISHED,
         is_active=True,
     ).order_by("name")
@@ -235,7 +247,7 @@ def student_dashboard(request):
         )
         .select_related(
             "assessment",
-            "assessment__subject",
+            "assessment__program",
         )
         .order_by("-submitted_at")
     )
@@ -318,13 +330,15 @@ def teacher_dashboard(request):
         created_by=request.user,
     ).count()
 
+
     recent_assessments = (
         Assessment.objects
         .filter(
             created_by=request.user,
         )
         .select_related(
-            "subject",
+            "program",
+            "program__institute",
         )
         .order_by(
             "-created_at",

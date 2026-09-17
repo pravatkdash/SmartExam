@@ -323,8 +323,8 @@ def teacher_assessment_list(request):
             created_by=request.user,
         )
         .select_related(
-            "subject",
-            "subject__program",
+            "program",
+            "program__institute",
         )
         .order_by(
             "-created_at",
@@ -338,7 +338,6 @@ def teacher_assessment_list(request):
             "assessments": assessments,
         },
     )
-
 
 
 @login_required
@@ -371,16 +370,22 @@ def teacher_assessment_create(request):
         duration_minutes = request.POST.get("duration_minutes")
 
         # ---------------------------------------------
-        # Validate subject
+        # Validate subject assignment
         # ---------------------------------------------
 
-        subject = get_object_or_404(
-            TeacherAssignment.objects.select_related("subject"),
+        assignment = get_object_or_404(
+            TeacherAssignment.objects.select_related(
+                "subject",
+                "subject__program",
+            ),
             teacher=request.user,
             subject_id=subject_id,
             is_active=True,
             subject__is_active=True,
-        ).subject
+        )
+
+        subject = assignment.subject
+        program = subject.program
 
         # ---------------------------------------------
         # Basic validation
@@ -415,13 +420,13 @@ def teacher_assessment_create(request):
 
             if Assessment.objects.filter(
                 created_by=request.user,
-                subject=subject,
+                program=program,
                 name=name,
             ).exists():
 
                 errors.append(
                     "You already have an assessment with this name "
-                    "for this subject."
+                    "for this program."
                 )
 
         # ---------------------------------------------
@@ -440,7 +445,7 @@ def teacher_assessment_create(request):
             # -----------------------------------------
 
             assessment = Assessment.objects.create(
-                subject=subject,
+                program=program,
                 name=name,
                 description=description,
                 duration_minutes=duration_minutes,
@@ -477,8 +482,8 @@ def teacher_assessment_detail(request, assessment_id):
 
     assessment = get_object_or_404(
         Assessment.objects.select_related(
-            "subject",
-            "subject__program",
+            "program",
+            "program__institute",
         ),
         id=assessment_id,
         created_by=request.user,
@@ -505,7 +510,6 @@ def teacher_assessment_detail(request, assessment_id):
     )
 
 
-
 @login_required
 def teacher_assessment_add_questions(request, assessment_id):
 
@@ -522,8 +526,8 @@ def teacher_assessment_add_questions(request, assessment_id):
 
     assessment = get_object_or_404(
         Assessment.objects.select_related(
-            "subject",
-            "subject__program",
+            "program",
+            "program__institute",
         ),
         id=assessment_id,
         created_by=request.user,
@@ -546,13 +550,13 @@ def teacher_assessment_add_questions(request, assessment_id):
         )
 
     # -------------------------------------------------
-    # 4. Get teacher's questions for this subject
+    # 4. Get teacher's questions for this program
     # -------------------------------------------------
 
     questions = (
         Question.objects
         .filter(
-            chapter__subject=assessment.subject,
+            chapter__subject__program=assessment.program,
             created_by=request.user,
             is_active=True,
             chapter__is_active=True,
@@ -637,14 +641,14 @@ def teacher_assessment_add_questions(request, assessment_id):
             )
 
             current_max_order = (
-                                    assessment.assessment_questions
-                                    .order_by("-display_order")
-                                    .values_list(
-                                        "display_order",
-                                        flat=True,
-                                    )
-                                    .first()
-                                ) or 0
+                assessment.assessment_questions
+                .order_by("-display_order")
+                .values_list(
+                    "display_order",
+                    flat=True,
+                )
+                .first()
+            ) or 0
 
             for question_id in selected_question_ids:
 
@@ -673,8 +677,8 @@ def teacher_assessment_add_questions(request, assessment_id):
         )
 
         for index, assessment_question in enumerate(
-                assessment_questions,
-                start=1,
+            assessment_questions,
+            start=1,
         ):
 
             if assessment_question.display_order != index:
@@ -695,7 +699,6 @@ def teacher_assessment_add_questions(request, assessment_id):
             "teacher_assessment_detail",
             assessment_id=assessment.id,
         )
-
 
     # -------------------------------------------------
     # 7. Display page
@@ -728,7 +731,7 @@ def teacher_assessment_publish(request, assessment_id):
 
     assessment = get_object_or_404(
         Assessment.objects.select_related(
-            "subject",
+            "program",
         ),
         id=assessment_id,
         created_by=request.user,

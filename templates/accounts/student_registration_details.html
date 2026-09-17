@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block content %}
@@ -101,6 +102,8 @@
         box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.10);
     }
 
+    /* Program section */
+
     .program-section {
         margin-top: 28px;
         padding-top: 24px;
@@ -118,50 +121,112 @@
         font-size: 13px;
         color: #6b7280;
         margin-bottom: 16px;
+        line-height: 1.5;
     }
 
-    .program-section ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+    .program-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
-    .program-section li {
-        margin-bottom: 10px;
-    }
-
-    .program-section li label {
+    .program-card {
+        position: relative;
         display: flex;
         align-items: center;
-        gap: 10px;
-        min-height: 48px;
-        padding: 10px 14px;
+        gap: 14px;
+        min-height: 72px;
+        padding: 14px 16px;
         margin: 0;
-        border: 1px solid #e3e6ec;
-        border-radius: 10px;
+        border: 1px solid #e1e5ec;
+        border-radius: 12px;
+        background: #ffffff;
         cursor: pointer;
-        transition: all 0.15s ease;
-        font-weight: 500;
+        transition:
+            border-color 0.15s ease,
+            background 0.15s ease,
+            box-shadow 0.15s ease;
+        box-sizing: border-box;
     }
 
-    .program-section li label:hover {
-        background: #fafbff;
+    .program-card:hover {
         border-color: #9aa8c7;
+        background: #fafbff;
     }
 
-    .program-section li input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+    .program-card input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
         min-height: auto;
+        flex-shrink: 0;
+        margin: 0;
+        padding: 0;
         accent-color: #1e3a8a;
         cursor: pointer;
     }
 
-    .program-section ul.errorlist {
+    .program-card-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+    }
+
+    .program-card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .program-card-meta {
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 400;
+    }
+
+    .program-check {
+        display: none;
+        color: #1e3a8a;
+        font-size: 18px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .program-card:has(input[type="checkbox"]:checked) {
+        border-color: #1e3a8a;
+        background: #f5f7ff;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.08);
+    }
+
+    .program-card:has(input[type="checkbox"]:checked)
+    .program-card-title {
+        color: #172554;
+    }
+
+    .program-card:has(input[type="checkbox"]:checked)
+    .program-check {
+        display: block;
+    }
+
+    /* Error messages */
+
+    .student-complete-form .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 6px 0 0;
         color: #dc2626;
         font-size: 13px;
-        margin: 8px 0 0;
     }
+
+    .program-section .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0 0;
+        color: #dc2626;
+        font-size: 13px;
+    }
+
+    /* Submit button */
 
     .complete-button {
         width: 100%;
@@ -174,12 +239,20 @@
         font-size: 15px;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.15s ease;
+        transition:
+            background 0.15s ease,
+            transform 0.1s ease;
     }
 
     .complete-button:hover {
         background: #172554;
     }
+
+    .complete-button:active {
+        transform: translateY(1px);
+    }
+
+    /* Footer */
 
     .complete-footer {
         text-align: center;
@@ -190,6 +263,8 @@
         font-size: 12px;
     }
 
+    /* Mobile */
+
     @media (max-width: 600px) {
 
         .student-complete-page {
@@ -198,10 +273,16 @@
 
         .student-complete-card {
             padding: 28px 22px;
+            border-radius: 16px;
         }
 
         .complete-brand h1 {
             font-size: 23px;
+        }
+
+        .program-card {
+            min-height: 68px;
+            padding: 13px 14px;
         }
     }
 </style>
@@ -210,6 +291,8 @@
 <div class="student-complete-page">
 
     <div class="student-complete-card">
+
+        <!-- Brand -->
 
         <div class="complete-brand">
 
@@ -223,16 +306,21 @@
 
             <div class="complete-subtitle">
                 Your mobile number has been verified.
-                Just select the programs you want to access.
+                Choose the programs you want to access.
             </div>
 
         </div>
 
 
+        <!-- Verification status -->
+
         <div class="registration-success">
-            ✓ Mobile number verified successfully
+            <span>✓</span>
+            <span>Mobile number verified successfully</span>
         </div>
 
+
+        <!-- Registration form -->
 
         <form
             method="post"
@@ -241,8 +329,13 @@
 
             {% csrf_token %}
 
+
+            <!-- Student details -->
+
             {{ form.as_p }}
 
+
+            <!-- Program selection -->
 
             <div class="program-section">
 
@@ -251,10 +344,58 @@
                 </div>
 
                 <div class="program-description">
-                    Choose the programs you want to enroll in.
+                    Choose one or more programs you want to access.
                 </div>
 
-                {{ program_form.programs }}
+
+                <div class="program-list">
+
+                    {% for checkbox in program_form.programs %}
+
+                        <label class="program-card">
+
+                            {{ checkbox.tag }}
+
+                            <span class="program-card-content">
+
+                                <span class="program-card-title">
+                                    {{ checkbox.choice_label }}
+                                </span>
+
+                                <span class="program-card-meta">
+                                    Available to SmartExam students
+                                </span>
+
+                            </span>
+
+                            <span class="program-check">
+                                ✓
+                            </span>
+
+                        </label>
+
+                    {% empty %}
+
+                        <div class="program-card">
+
+                            <span class="program-card-content">
+
+                                <span class="program-card-title">
+                                    No programs available
+                                </span>
+
+                                <span class="program-card-meta">
+                                    Please try again later.
+                                </span>
+
+                            </span>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
 
                 {% if program_form.programs.errors %}
 
@@ -267,6 +408,8 @@
             </div>
 
 
+            <!-- Submit -->
+
             <button
                 type="submit"
                 class="complete-button"
@@ -276,6 +419,8 @@
 
         </form>
 
+
+        <!-- Footer -->
 
         <div class="complete-footer">
             SmartExam Student Portal

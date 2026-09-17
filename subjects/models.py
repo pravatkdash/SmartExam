@@ -26,6 +26,11 @@ class Institute(BaseModel):
 
 class Program(BaseModel):
 
+    class ProgramAccess(models.TextChoices):
+        PUBLIC = "PUBLIC", "Public"
+        INSTITUTE = "INSTITUTE", "Institute"
+        PRIVATE = "PRIVATE", "Private"
+
     institute = models.ForeignKey(
         Institute,
         on_delete=models.PROTECT,
@@ -34,11 +39,18 @@ class Program(BaseModel):
         null=True,
     )
 
+
     name = models.CharField(
         max_length=200,
     )
     description = models.TextField(
         blank=True,
+    )
+
+    access = models.CharField(
+        max_length=20,
+        choices=ProgramAccess.choices,
+        default=ProgramAccess.INSTITUTE,
     )
 
     class Meta:
