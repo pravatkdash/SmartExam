@@ -24,3 +24,6 @@ env/
 # Operating System
 .DS_Store
 Thumbs.db
+
+# Collected static files
+staticfiles/
