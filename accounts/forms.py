@@ -69,10 +69,34 @@ class StudentProgramSelectionForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["programs"].queryset = Program.objects.filter(
-            access=Program.ProgramAccess.PUBLIC,
-            is_active=True,
-        ).order_by("name")
+        programs = (
+            Program.objects
+            .filter(
+                access=Program.ProgramAccess.PUBLIC,
+                is_active=True,
+            )
+            .select_related("exam_authority")
+            .order_by(
+                "exam_authority__name",
+                "name",
+            )
+        )
 
+        self.fields["programs"].queryset = programs
 
+        programs_by_authority = {}
+
+        for program in programs:
+            authority_name = (
+                program.exam_authority.name
+                if program.exam_authority
+                else "Other Exams"
+            )
+
+            programs_by_authority.setdefault(
+                authority_name,
+                []
+            ).append(program)
+
+        self.program_groups = programs_by_authority.items()
 

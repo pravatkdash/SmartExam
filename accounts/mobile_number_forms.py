@@ -1,5 +1,7 @@
 from django import forms
 
+from accounts.models import User
+
 
 class StudentMobileForm(forms.Form):
     mobile_number = forms.CharField(
@@ -10,6 +12,17 @@ class StudentMobileForm(forms.Form):
             attrs={
                 "placeholder": "Enter mobile number",
                 "autocomplete": "tel",
+                "inputmode": "numeric",
+            }
+        ),
+    )
+
+    email = forms.EmailField(
+        label="Email Address",
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "Enter your email address",
+                "autocomplete": "email",
             }
         ),
     )
@@ -28,3 +41,13 @@ class StudentMobileForm(forms.Form):
             )
 
         return mobile_number
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                "An account with this email address already exists."
+            )
+
+        return email

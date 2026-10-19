@@ -24,6 +24,33 @@ class Institute(BaseModel):
         return self.name
 
 
+class ExamAuthority(BaseModel):
+    name = models.CharField(
+        max_length=150,
+        unique=True,
+    )
+    short_name = models.CharField(
+        max_length=50,
+        unique=True,
+    )
+    state = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Exam Authority"
+        verbose_name_plural = "Exam Authorities"
+
+    def __str__(self):
+        return f"{self.name} ({self.short_name})"
+
+
+
 class Program(BaseModel):
 
     class ProgramAccess(models.TextChoices):
@@ -33,6 +60,14 @@ class Program(BaseModel):
 
     institute = models.ForeignKey(
         Institute,
+        on_delete=models.PROTECT,
+        related_name="programs",
+        blank=True,
+        null=True,
+    )
+
+    exam_authority = models.ForeignKey(
+        ExamAuthority,
         on_delete=models.PROTECT,
         related_name="programs",
         blank=True,
@@ -231,3 +266,5 @@ class StudentProgramEnrollment(BaseModel):
 
     def __str__(self):
         return f"{self.student} - {self.program}"
+
+

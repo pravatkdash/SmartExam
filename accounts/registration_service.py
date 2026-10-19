@@ -15,13 +15,15 @@ def register_student(
     if email and User.objects.filter(email=email).exists():
         raise ValueError("A user with this email already exists.")
 
+
     student = User.objects.create_user(
         email=email,
         password=pin,
         first_name=first_name,
         mobile_number=mobile_number,
         user_type=UserType.STUDENT,
-        mobile_verified=True,
+        mobile_verified=False,
+        email_verified=True,
     )
 
     return student

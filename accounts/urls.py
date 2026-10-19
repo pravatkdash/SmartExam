@@ -9,6 +9,18 @@ urlpatterns = [
     path("register/success/", views.student_registration_success, name="student_registration_success",),
     path("login/", views.student_login, name="student_login",),
     path("student/dashboard/", views.student_dashboard, name="student_dashboard",),
+    path(
+        "student/explore-exams/",
+        views.student_explore_exams,
+        name="student_explore_exams",
+    ),
+
+    path(
+        "student/explore-exams/<uuid:program_id>/add/",
+        views.student_add_exam,
+        name="student_add_exam",
+    ),
+
     path("logout/", views.student_logout, name="student_logout",),
     path(
         "teacher/login/",
@@ -78,6 +90,12 @@ urlpatterns = [
         "institute/login/",
         views.institute_admin_login,
         name="institute_admin_login",
+    ),
+
+    path(
+        "register/reset/",
+        views.student_registration_reset,
+        name="student_registration_reset",
     ),
 
 
