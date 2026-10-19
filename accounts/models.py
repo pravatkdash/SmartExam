@@ -28,6 +28,8 @@ class User(AbstractUser):
 
     mobile_verified = models.BooleanField(default=False)
 
+    email_verified = models.BooleanField(default=False)
+
     user_type = models.CharField(
         max_length=20,
         choices=UserType.choices,
@@ -99,3 +101,45 @@ class MobileOTP(models.Model):
 
     def __str__(self):
         return f"{self.mobile_number} - {self.purpose}"
+
+
+class EmailOTP(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+
+    email = models.EmailField(
+        db_index=True,
+    )
+
+    otp_hash = models.CharField(
+        max_length=128,
+    )
+
+    purpose = models.CharField(
+        max_length=20,
+        choices=OTPPurpose.choices,
+    )
+
+    expires_at = models.DateTimeField()
+
+    attempts = models.PositiveIntegerField(
+        default=0,
+    )
+
+    is_used = models.BooleanField(
+        default=False,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    def __str__(self):
+        return f"{self.email} - {self.purpose}"

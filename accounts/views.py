@@ -1,3 +1,5 @@
+import email
+
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -10,9 +12,9 @@ from django.http import HttpResponse
 
 from accounts.forms import TeacherLoginForm, StudentProgramSelectionForm
 from accounts.mobile_number_forms import StudentMobileForm
-from accounts.models import OTPPurpose, UserType
+from accounts.models import OTPPurpose, UserType, User
 from accounts.otp_forms import StudentOTPForm
-from accounts.otp_service import create_otp, verify_otp
+from accounts.otp_service import create_otp, verify_otp, create_email_otp, verify_email_otp
 from accounts.registration_service import register_student
 from accounts.student_login_forms import StudentLoginForm
 from accounts.student_login_service import authenticate_student
@@ -21,7 +23,7 @@ from assessment.models import Assessment, AssessmentAttempt, AssessmentAttemptSt
 from questions.models import Question
 from questions.question_service import is_question_locked, get_question_lock_message
 from questions.teacher_forms import TeacherQuestionForm, TeacherOptionAddFormSet, TeacherOptionFormSet
-from subjects.models import TeacherAssignment, StudentProgramEnrollment
+from subjects.models import TeacherAssignment, StudentProgramEnrollment, Program
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -35,29 +37,158 @@ def home(request):
     return render(request, "accounts/home.html")
 
 def student_register(request):
-    if request.method == "POST":
-        form = StudentMobileForm(request.POST)
+    mobile_number = request.session.get("registration_mobile")
+    email = request.session.get("registration_email")
+    email_verified = request.session.get(
+        "registration_email_verified",
+        False,
+    )
 
-        if form.is_valid():
-            mobile_number = form.cleaned_data["mobile_number"]
+    # ---------------------------------------------------------
+    # STEP 1: Send Email OTP
+    # ---------------------------------------------------------
+    if request.method == "POST" and request.POST.get("action") == "send_otp":
+        mobile_form = StudentMobileForm(request.POST)
 
-            create_otp(
-                mobile_number,
+        if mobile_form.is_valid():
+            mobile_number = mobile_form.cleaned_data["mobile_number"]
+            email = mobile_form.cleaned_data["email"]
+
+            create_email_otp(
+                email,
                 OTPPurpose.REGISTRATION,
             )
 
             request.session["registration_mobile"] = mobile_number
+            request.session["registration_email"] = email
+            request.session["registration_email_verified"] = False
 
-            return redirect("student_verify_otp")
+            return redirect("student_register")
 
     else:
-        form = StudentMobileForm()
+        mobile_form = StudentMobileForm()
+
+    # ---------------------------------------------------------
+    # STEP 2: Verify Email OTP
+    # ---------------------------------------------------------
+    if request.method == "POST" and request.POST.get("action") == "verify_otp":
+        email = request.session.get("registration_email")
+
+        if not email:
+            return redirect("student_register")
+
+        otp_form = StudentOTPForm(request.POST)
+
+        if otp_form.is_valid():
+            success, message = verify_email_otp(
+                email,
+                otp_form.cleaned_data["otp"],
+                OTPPurpose.REGISTRATION,
+            )
+
+            if success:
+                request.session["registration_email_verified"] = True
+
+                return redirect("student_register")
+
+            otp_form.add_error("otp", message)
+
+    else:
+        otp_form = StudentOTPForm()
+
+    # ---------------------------------------------------------
+    # STEP 3: Create account
+    # ---------------------------------------------------------
+    if request.method == "POST" and request.POST.get("action") == "create_account":
+        mobile_number = request.session.get("registration_mobile")
+        email = request.session.get("registration_email")
+        email_verified = request.session.get(
+            "registration_email_verified",
+            False,
+        )
+
+        if not mobile_number or not email or not email_verified:
+            return redirect("student_register")
+
+        form = StudentRegistrationForm(
+            request.POST,
+            email=email,
+        )
+        program_form = StudentProgramSelectionForm(request.POST)
+
+        if form.is_valid() and program_form.is_valid():
+
+            try:
+                student = register_student(
+                    mobile_number=mobile_number,
+                    first_name=form.cleaned_data["first_name"],
+                    pin=form.cleaned_data["pin"],
+                    email=email,
+                )
+
+                selected_programs = program_form.cleaned_data["programs"]
+
+                StudentProgramEnrollment.objects.bulk_create(
+                    [
+                        StudentProgramEnrollment(
+                            student=student,
+                            program=program,
+                            is_active=True,
+                        )
+                        for program in selected_programs
+                    ]
+                )
+
+                # Mark email as verified
+                student.email_verified = True
+                student.save(update_fields=["email_verified"])
+
+                # Clear registration session
+                request.session.pop("registration_mobile", None)
+                request.session.pop("registration_email", None)
+                request.session.pop(
+                    "registration_email_verified",
+                    None,
+                )
+
+                # Automatically log in the new student
+                login(request, student)
+
+                return redirect("student_dashboard")
+
+            except ValueError as exc:
+                form.add_error(None, str(exc))
+
+    else:
+        form = StudentRegistrationForm(
+            email=email,
+        )
+        program_form = StudentProgramSelectionForm()
+
+    # ---------------------------------------------------------
+    # Current registration stage
+    # ---------------------------------------------------------
+    mobile_number = request.session.get("registration_mobile")
+    email = request.session.get("registration_email")
+    email_verified = request.session.get(
+        "registration_email_verified",
+        False,
+    )
 
     return render(
         request,
         "accounts/student_register.html",
-        {"form": form},
+        {
+            "mobile_form": mobile_form,
+            "otp_form": otp_form,
+            "form": form,
+            "program_form": program_form,
+            "registration_mobile": mobile_number,
+            "registration_email": email,
+            "email_verified": email_verified,
+        },
     )
+
 
 def student_verify_otp(request):
     mobile_number = request.session.get("registration_mobile")
@@ -101,7 +232,7 @@ def student_registration_details(request):
         return redirect("student_register")
 
     if request.method == "POST":
-        form = StudentRegistrationForm(request.POST)
+        form = StudentRegistrationForm(request.POST, email=email,)
         program_form = StudentProgramSelectionForm(request.POST)
 
         if form.is_valid() and program_form.is_valid():
@@ -138,7 +269,7 @@ def student_registration_details(request):
                 form.add_error(None, str(exc))
 
     else:
-        form = StudentRegistrationForm()
+        form = StudentRegistrationForm(email=email,)
         program_form = StudentProgramSelectionForm()
 
     return render(
@@ -922,7 +1053,80 @@ def teacher_delete_question(
     )
 
 
+@login_required
+def student_explore_exams(request):
+    if request.user.user_type != UserType.STUDENT:
+        return redirect("home")
+
+    programs = (
+        Program.objects
+        .filter(
+            access=Program.ProgramAccess.PUBLIC,
+            is_active=True,
+        )
+        .select_related("exam_authority")
+        .order_by(
+            "exam_authority__name",
+            "name",
+        )
+    )
+
+    enrolled_program_ids = set(
+        StudentProgramEnrollment.objects
+        .filter(
+            student=request.user,
+            is_active=True,
+        )
+        .values_list("program_id", flat=True)
+    )
+
+    return render(
+        request,
+        "accounts/student_explore_exams.html",
+        {
+            "programs": programs,
+            "enrolled_program_ids": enrolled_program_ids,
+        },
+    )
+
+
+@login_required
+def student_add_exam(request, program_id):
+    if request.user.user_type != UserType.STUDENT:
+        return redirect("home")
+
+    if request.method != "POST":
+        return redirect("student_explore_exams")
+
+    program = get_object_or_404(
+        Program,
+        id=program_id,
+        access=Program.ProgramAccess.PUBLIC,
+        is_active=True,
+    )
+
+    enrollment, created = StudentProgramEnrollment.objects.get_or_create(
+        student=request.user,
+        program=program,
+        defaults={
+            "is_active": True,
+        },
+    )
+
+    if not created and not enrollment.is_active:
+        enrollment.is_active = True
+        enrollment.save(update_fields=["is_active"])
+
+    return redirect("student_explore_exams")
+
 
 def student_logout(request):
     logout(request)
     return redirect("student_login")
+
+def student_registration_reset(request):
+    request.session.pop("registration_mobile", None)
+    request.session.pop("registration_email", None)
+    request.session.pop("registration_email_verified", None)
+
+    return redirect("student_register")

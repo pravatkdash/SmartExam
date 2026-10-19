@@ -14,7 +14,7 @@
 
     .student-register-card {
         width: 100%;
-        max-width: 460px;
+        max-width: 520px;
         background: #ffffff;
         border: 1px solid #e7e9ef;
         border-radius: 18px;
@@ -24,7 +24,7 @@
 
     .register-brand {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 28px;
     }
 
     .register-brand-icon {
@@ -55,6 +55,33 @@
         line-height: 1.5;
     }
 
+    .register-step {
+        margin-bottom: 24px;
+    }
+
+    .register-step-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #1e3a8a;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 7px;
+    }
+
+    .register-step-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #172554;
+    }
+
+    .register-step-description {
+        margin: 6px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
     .student-register-form p {
         margin-bottom: 18px;
     }
@@ -67,7 +94,9 @@
         color: #374151;
     }
 
-    .student-register-form input {
+    .student-register-form input[type="text"],
+    .student-register-form input[type="email"],
+    .student-register-form input[type="password"] {
         width: 100%;
         height: 48px;
         padding: 0 14px;
@@ -108,6 +137,39 @@
         font-size: 13px;
     }
 
+    .verified-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .verified-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #16a34a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .mobile-display {
+        margin-top: 4px;
+        font-weight: 600;
+        color: #374151;
+    }
+
     .register-button {
         width: 100%;
         height: 48px;
@@ -124,6 +186,124 @@
 
     .register-button:hover {
         background: #172554;
+    }
+
+    .secondary-button {
+        width: 100%;
+        height: 44px;
+        border: 1px solid #dfe3ea;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .secondary-button:hover {
+        background: #f9fafb;
+    }
+
+    .otp-input {
+        text-align: center;
+        letter-spacing: 8px;
+        font-size: 22px !important;
+        font-weight: 600;
+    }
+
+    .password-help {
+        margin-top: -10px;
+        margin-bottom: 18px;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .program-section {
+        margin-top: 26px;
+        padding-top: 24px;
+        border-top: 1px solid #edf0f4;
+    }
+
+    .program-section h3 {
+        margin: 0;
+        font-size: 17px;
+        color: #172554;
+    }
+
+    .program-section-description {
+        margin: 6px 0 18px;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .program-group {
+        margin-bottom: 20px;
+    }
+
+    .program-group-title {
+        margin-bottom: 9px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .program-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 13px 14px;
+        margin-bottom: 9px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .program-card:hover {
+        border-color: #c7d2fe;
+        background: #fafaff;
+    }
+
+    .program-card input {
+        width: 17px;
+        height: 17px;
+        margin-top: 2px;
+        flex-shrink: 0;
+        accent-color: #1e3a8a;
+    }
+
+    .program-info {
+        min-width: 0;
+    }
+
+    .program-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .program-description {
+        margin-top: 3px;
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.4;
+    }
+
+    .no-programs {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 13px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .optional-label {
+        font-weight: 400;
+        color: #9ca3af;
     }
 
     .login-section {
@@ -153,7 +333,6 @@
     }
 
     @media (max-width: 600px) {
-
         .student-register-page {
             padding: 24px 16px;
         }
@@ -168,76 +347,312 @@
     }
 </style>
 
-
 <div class="student-register-page">
+<div class="student-register-card">
 
-    <div class="student-register-card">
 
-        <div class="register-brand">
+<div class="register-brand">
 
-            <div class="register-brand-icon">
-                SE
-            </div>
+    <div class="register-brand-icon">
+        SE
+    </div>
 
-            <h1>
-                Create your account
-            </h1>
+    <h1>Create your account</h1>
 
-            <div class="register-subtitle">
-                Register as a student to access assessments
-                and track your exam results.
-            </div>
+    <div class="register-subtitle">
+        Start your exam preparation with SmartExam.
+    </div>
 
+</div>
+
+
+{% if form.non_field_errors %}
+    <div class="register-error">
+        {{ form.non_field_errors }}
+    </div>
+{% endif %}
+
+
+{% if not registration_mobile %}
+
+    <!-- STEP 1: MOBILE + EMAIL -->
+
+    <div class="register-step">
+
+        <div class="register-step-label">
+            Step 1
         </div>
 
+        <h2 class="register-step-title">
+            Verify your email address
+        </h2>
 
-        {% if form.non_field_errors %}
+        <p class="register-step-description">
+            Enter your mobile number and email address.
+            We'll send a 4-digit verification code to your email.
+        </p>
+
+    </div>
+
+
+    <form method="post" class="student-register-form">
+
+        {% csrf_token %}
+
+        {{ mobile_form.as_p }}
+
+        <input
+            type="hidden"
+            name="action"
+            value="send_otp"
+        >
+
+        <button
+            type="submit"
+            class="register-button"
+        >
+            Send verification code
+        </button>
+
+    </form>
+
+
+{% elif not email_verified %}
+
+    <!-- STEP 2: EMAIL OTP -->
+
+    <div class="register-step">
+
+        <div class="register-step-label">
+            Step 2
+        </div>
+
+        <h2 class="register-step-title">
+            Verify your email address
+        </h2>
+
+        <p class="register-step-description">
+            We sent a 4-digit verification code to:
+        </p>
+
+        <div class="mobile-display">
+            {{ registration_email }}
+        </div>
+
+    </div>
+
+
+    <form method="post" class="student-register-form">
+
+        {% csrf_token %}
+
+        <p>
+
+            <label for="{{ otp_form.otp.id_for_label }}">
+                Verification code
+            </label>
+
+            <input
+                type="text"
+                name="otp"
+                id="{{ otp_form.otp.id_for_label }}"
+                class="otp-input"
+                placeholder="••••"
+                maxlength="4"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+            >
+
+            {{ otp_form.otp.errors }}
+
+        </p>
+
+
+        {% if otp_form.non_field_errors %}
 
             <div class="register-error">
-
-                {{ form.non_field_errors }}
-
+                {{ otp_form.non_field_errors }}
             </div>
 
         {% endif %}
 
 
-        <form
-            method="post"
-            class="student-register-form"
+        <input
+            type="hidden"
+            name="action"
+            value="verify_otp"
         >
 
-            {% csrf_token %}
 
-            {{ form.as_p }}
+        <button
+            type="submit"
+            class="register-button"
+        >
+            Verify email address
+        </button>
 
-            <button
-                type="submit"
-                class="register-button"
-            >
-                Send OTP
-            </button>
-
-        </form>
+    </form>
 
 
-        <div class="login-section">
+{% else %}
 
-            Already have an account?
+    <!-- STEP 3: ACCOUNT DETAILS -->
 
-            <a href="{% url 'student_login' %}">
-                Sign in
-            </a>
+    <div class="verified-box">
 
+        <div class="verified-icon">
+            ✓
         </div>
 
-
-        <div class="register-footer">
-            SmartExam Student Portal
+        <div>
+            Email address verified
         </div>
 
     </div>
 
+
+    <div style="text-align: right; margin-bottom: 20px;">
+        <a href="{% url 'student_registration_reset' %}"
+            style="color: #1e3a8a; font-size: 13px; font-weight: 600; text-decoration: none;">
+            ← Start over
+        </a>
+    </div>
+
+
+    <div class="register-step">
+
+        <div class="register-step-label">
+            Step 3
+        </div>
+
+        <h2 class="register-step-title">
+            Tell us about yourself
+        </h2>
+
+        <p class="register-step-description">
+            Just a few details and you're ready to start.
+        </p>
+
+    </div>
+
+
+    <form method="post" class="student-register-form">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+
+        <div class="password-help">
+            You'll use this 4-digit password along with your mobile number
+            to sign in to SmartExam.
+        </div>
+
+
+        <div class="program-section">
+
+            <h3>
+                What are you preparing for?
+                <span class="optional-label">(Optional)</span>
+            </h3>
+
+            <div class="program-section-description">
+                Choose your exams now, or skip this and add exams
+                later from your account.
+            </div>
+
+
+            {% for authority_name, programs in program_form.program_groups %}
+
+                <div class="program-group">
+
+                    <div class="program-group-title">
+                        {{ authority_name }}
+                    </div>
+
+
+                    {% for program in programs %}
+
+                        <label class="program-card">
+
+                            <input
+                                type="checkbox"
+                                name="programs"
+                                value="{{ program.pk }}"
+                            >
+
+                            <div class="program-info">
+
+                                <div class="program-name">
+                                    {{ program.name }}
+                                </div>
+
+                                {% if program.description %}
+
+                                    <div class="program-description">
+                                        {{ program.description }}
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        </label>
+
+                    {% endfor %}
+
+                </div>
+
+            {% empty %}
+
+                <div class="no-programs">
+                    No exams are currently available.
+                    You can add an exam later from your account.
+                </div>
+
+            {% endfor %}
+
+
+            {{ program_form.programs.errors }}
+
+        </div>
+
+
+        <input
+            type="hidden"
+            name="action"
+            value="create_account"
+        >
+
+
+        <button
+            type="submit"
+            class="register-button"
+        >
+            Create My SmartExam Account
+        </button>
+
+    </form>
+
+{% endif %}
+
+
+<div class="login-section">
+
+    Already have an account?
+
+    <a href="{% url 'student_login' %}">
+        Sign in
+    </a>
+
+</div>
+
+
+<div class="register-footer">
+    SmartExam Student Portal
+</div>
+
+</div>
 </div>
 
 {% endblock %}

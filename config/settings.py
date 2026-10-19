@@ -173,3 +173,22 @@ SECURE_HSTS_SECONDS = int(
         "0",
     )
 )
+
+# Session expires after 1 hour of inactivity
+SESSION_COOKIE_AGE = 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True
+
+LOGIN_URL = "/login/"
+
+# Send email related
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = "69fvdemjfpfw.fips.wmjb.mail-manager-smtp.amazonaws.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = os.getenv("AWS_SES_SMTP_USERNAME")
+EMAIL_HOST_PASSWORD = os.getenv("AWS_SES_SMTP_PASSWORD")
+
+DEFAULT_FROM_EMAIL = "smartexamtechnology@gmail.com"
+EMAIL_TIMEOUT = 20

@@ -1,7 +1,19 @@
 from django import forms
 
-
 class StudentRegistrationForm(forms.Form):
+
+    email = forms.EmailField(
+        required=True,
+        label="Email Address",
+        widget=forms.EmailInput(
+            attrs={
+                "placeholder": "Enter your email address",
+                "autocomplete": "email",
+                "readonly": "readonly",
+            }
+        ),
+    )
+
     first_name = forms.CharField(
         max_length=150,
         label="First Name",
@@ -13,24 +25,15 @@ class StudentRegistrationForm(forms.Form):
         ),
     )
 
-    email = forms.EmailField(
-        required=False,
-        label="Email",
-        widget=forms.EmailInput(
-            attrs={
-                "placeholder": "Enter your email (optional)",
-                "autocomplete": "email",
-            }
-        ),
-    )
+
 
     pin = forms.CharField(
         min_length=4,
         max_length=4,
-        label="PIN",
+        label="Create a 4-digit password",
         widget=forms.PasswordInput(
             attrs={
-                "placeholder": "Enter 4-digit PIN",
+                "placeholder": "Enter 4-digit password",
                 "inputmode": "numeric",
                 "autocomplete": "new-password",
             }
@@ -40,15 +43,21 @@ class StudentRegistrationForm(forms.Form):
     confirm_pin = forms.CharField(
         min_length=4,
         max_length=4,
-        label="Confirm PIN",
+        label="Confirm your 4-digit password",
         widget=forms.PasswordInput(
             attrs={
-                "placeholder": "Confirm 4-digit PIN",
+                "placeholder": "Re-enter 4-digit password",
                 "inputmode": "numeric",
                 "autocomplete": "new-password",
             }
         ),
     )
+
+    def __init__(self, *args, email=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if email:
+            self.fields["email"].initial = email
 
     def clean_pin(self):
         pin = self.cleaned_data["pin"]
@@ -78,7 +87,7 @@ class StudentRegistrationForm(forms.Form):
 
         if pin and confirm_pin and pin != confirm_pin:
             raise forms.ValidationError(
-                "PIN and Confirm PIN must match."
+                "Passwords do not match."
             )
 
         return cleaned_data

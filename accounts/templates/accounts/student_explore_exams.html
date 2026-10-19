@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="fw-bold mb-1">
+            Explore Exams
+        </h1>
+
+        <p class="text-muted mb-0">
+            Choose an exam you want to prepare for.
+        </p>
+    </div>
+
+
+    <!-- Exam List -->
+    <div class="row g-3">
+
+        {% for program in programs %}
+
+            <div class="col-md-6">
+
+                <div class="card border-0 shadow-sm h-100">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+
+                            <!-- Exam Information -->
+                            <div>
+
+                                {% if program.exam_authority %}
+
+                                    <div class="small text-muted mb-1">
+                                        {{ program.exam_authority.short_name }}
+                                    </div>
+
+                                {% endif %}
+
+                                <h5 class="fw-bold mb-2">
+                                    {{ program.name }}
+                                </h5>
+
+                                {% if program.description %}
+
+                                    <p class="text-muted small mb-0">
+                                        {{ program.description|truncatewords:18 }}
+                                    </p>
+
+                                {% else %}
+
+                                    <p class="text-muted small mb-0">
+                                        Prepare with SmartExam.
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- Action -->
+                            <div class="flex-shrink-0">
+
+                                {% if program.id in enrolled_program_ids %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-success btn-sm px-3"
+                                        disabled
+                                    >
+                                        ✓ Added
+                                    </button>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary btn-sm px-3"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#addExamModal-{{ program.id }}"
+                                    >
+                                        Add Exam
+                                    </button>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {% if program.id not in enrolled_program_ids %}
+
+                <!-- Add Exam Confirmation Modal -->
+                <div
+                    class="modal fade"
+                    id="addExamModal-{{ program.id }}"
+                    tabindex="-1"
+                    aria-labelledby="addExamModalLabel-{{ program.id }}"
+                    aria-hidden="true"
+                >
+
+                    <div class="modal-dialog modal-dialog-centered">
+
+                        <div class="modal-content border-0 shadow">
+
+                            <div class="modal-header">
+
+                                <h5
+                                    class="modal-title fw-bold"
+                                    id="addExamModalLabel-{{ program.id }}"
+                                >
+                                    Add Exam
+                                </h5>
+
+                                <button
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="Close"
+                                ></button>
+
+                            </div>
+
+
+                            <div class="modal-body">
+
+                                <p class="mb-2">
+                                    Add
+                                    <strong>{{ program.name }}</strong>
+                                    to your preparation list?
+                                </p>
+
+                                <p class="text-muted small mb-0">
+                                    You will be able to access assessments
+                                    available for this exam from your dashboard.
+                                </p>
+
+                            </div>
+
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Cancel
+                                </button>
+
+
+                                <form
+                                    method="post"
+                                    action="{% url 'student_add_exam' program.id %}"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Add Exam
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+        {% empty %}
+
+            <div class="col-12">
+
+                <div class="card border-0 shadow-sm">
+
+                    <div class="card-body text-center py-5">
+
+                        <h5 class="fw-semibold mb-2">
+                            No exams available
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            New exams will appear here when they become available.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    <!-- Back to Dashboard -->
+    <div class="mt-4">
+
+        <a
+            href="{% url 'student_dashboard' %}"
+            class="btn btn-outline-secondary btn-sm"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

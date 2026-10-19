@@ -7,7 +7,7 @@ def authenticate_student(mobile_number, pin):
             mobile_number=mobile_number,
             user_type=UserType.STUDENT,
         )
-        print(student)
+        #print(student)
     except User.DoesNotExist:
         print("Student not found")
         return None
