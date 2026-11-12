@@ -181,14 +181,28 @@ SESSION_SAVE_EVERY_REQUEST = True
 LOGIN_URL = "/login/"
 
 # Send email related
+#EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+#EMAIL_HOST = "69fvdemjfpfw.fips.wmjb.mail-manager-smtp.amazonaws.com"
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+
+#EMAIL_HOST_USER = os.getenv("AWS_SES_SMTP_USERNAME")
+#EMAIL_HOST_PASSWORD = os.getenv("AWS_SES_SMTP_PASSWORD")
+
+#DEFAULT_FROM_EMAIL = "smartexamtechnology@gmail.com"
+#EMAIL_TIMEOUT = 20
+
+# Send email related - Brevo SMTP
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = "69fvdemjfpfw.fips.wmjb.mail-manager-smtp.amazonaws.com"
+EMAIL_HOST = "smtp-relay.brevo.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 
-EMAIL_HOST_USER = os.getenv("AWS_SES_SMTP_USERNAME")
-EMAIL_HOST_PASSWORD = os.getenv("AWS_SES_SMTP_PASSWORD")
+EMAIL_HOST_USER = os.getenv("BREVO_SMTP_USERNAME")
+EMAIL_HOST_PASSWORD = os.getenv("BREVO_SMTP_KEY")
 
 DEFAULT_FROM_EMAIL = "smartexamtechnology@gmail.com"
 EMAIL_TIMEOUT = 20
