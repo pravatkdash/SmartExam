@@ -6,103 +6,230 @@ Teacher Login | SmartExam
 
 {% block content %}
 
-<div class="row justify-content-center mt-5">
-    <div class="col-12 col-sm-10 col-md-6 col-lg-4">
-    <div class="card shadow border-0 rounded-3">
+<style>
+    .teacher-login-page {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f7f8fc;
+        padding: 40px 20px;
+    }
 
-        <div class="card-body p-4 p-md-5">
+    .teacher-login-card {
+        width: 100%;
+        max-width: 430px;
+        background: #ffffff;
+        border: 1px solid #e7e9ef;
+        border-radius: 18px;
+        padding: 36px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+    }
 
-            <!-- Header -->
-            <div class="text-center mb-4">
+    .login-brand {
+        text-align: center;
+        margin-bottom: 30px;
+    }
 
-                <div class="fs-1 mb-2">
-                    👨‍🏫
-                </div>
+    .login-brand-icon {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 16px;
+        border-radius: 14px;
+        background: #1e3a8a;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+    }
 
-                <h3 class="fw-bold mb-1">
-                    Teacher Login
-                </h3>
+    .login-brand h1 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+        color: #172554;
+    }
 
-                <p class="text-muted mb-0">
-                    Sign in to your Teacher Portal
-                </p>
+    .login-subtitle {
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 14px;
+    }
 
+    .teacher-login-form p {
+        margin-bottom: 20px;
+    }
+
+    .teacher-login-form label {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .teacher-login-form input {
+        width: 100%;
+        height: 48px;
+        padding: 0 14px;
+        border: 1px solid #dfe3ea;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #1f2937;
+        font-size: 15px;
+        box-sizing: border-box;
+        outline: none;
+        transition: all 0.15s ease;
+    }
+
+    .teacher-login-form input:focus {
+        border-color: #1e3a8a;
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.10);
+    }
+
+    .teacher-login-form ul.errorlist {
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+        color: #dc2626;
+        font-size: 13px;
+    }
+
+    .login-error {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+        border-radius: 10px;
+        padding: 11px 13px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .login-button {
+        width: 100%;
+        height: 48px;
+        border: none;
+        border-radius: 10px;
+        background: #1e3a8a;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .login-button:hover {
+        background: #172554;
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 22px;
+        color: #9ca3af;
+        font-size: 12px;
+    }
+
+    @media (max-width: 600px) {
+        .teacher-login-page {
+            padding: 24px 16px;
+        }
+
+        .teacher-login-card {
+            padding: 28px 22px;
+        }
+
+        .login-brand h1 {
+            font-size: 23px;
+        }
+    }
+</style>
+
+<div class="teacher-login-page">
+
+    <div class="teacher-login-card">
+
+        <div class="login-brand">
+
+            <div class="login-brand-icon">
+                SE
             </div>
 
-            <!-- Login Form -->
-            <form method="post">
+            <h1>
+                Teacher Sign In
+            </h1>
 
-                {% csrf_token %}
-
-                <!-- Email -->
-                <div class="mb-3">
-
-                    <label for="{{ form.email.id_for_label }}"
-                           class="form-label fw-semibold">
-                        Email Address
-                    </label>
-
-                    <input type="email"
-                           name="{{ form.email.html_name }}"
-                           id="{{ form.email.id_for_label }}"
-                           class="form-control form-control-lg"
-                           placeholder="Enter your email"
-                           autocomplete="email"
-                           value="{{ form.email.value|default:'' }}"
-                           required>
-
-                    {% if form.email.errors %}
-                        <div class="text-danger small mt-1">
-                            {{ form.email.errors }}
-                        </div>
-                    {% endif %}
-
-                </div>
-
-                <!-- Password -->
-                <div class="mb-4">
-
-                    <label for="{{ form.password.id_for_label }}"
-                           class="form-label fw-semibold">
-                        Password
-                    </label>
-
-                    <input type="password"
-                           name="{{ form.password.html_name }}"
-                           id="{{ form.password.id_for_label }}"
-                           class="form-control form-control-lg"
-                           placeholder="Enter your password"
-                           autocomplete="current-password"
-                           required>
-
-                    {% if form.password.errors %}
-                        <div class="text-danger small mt-1">
-                            {{ form.password.errors }}
-                        </div>
-                    {% endif %}
-
-                </div>
-
-                <!-- General Errors -->
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger small">
-                        {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
-
-                <!-- Login Button -->
-                <button type="submit"
-                        class="btn btn-primary btn-lg w-100">
-                    Login
-                </button>
-
-            </form>
+            <div class="login-subtitle">
+                Sign in to continue to your SmartExam Teacher Portal
+            </div>
 
         </div>
 
-    </div>
+        {% if form.non_field_errors %}
+            <div class="login-error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
 
-</div>
+        <form method="post" class="teacher-login-form">
+
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="{{ form.email.id_for_label }}">
+                    Email Address
+                </label>
+
+                <input type="email"
+                       name="{{ form.email.html_name }}"
+                       id="{{ form.email.id_for_label }}"
+                       placeholder="Enter your email"
+                       autocomplete="email"
+                       value="{{ form.email.value|default:'' }}"
+                       required>
+
+                {% if form.email.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.email.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.password.id_for_label }}">
+                    Password
+                </label>
+
+                <input type="password"
+                       name="{{ form.password.html_name }}"
+                       id="{{ form.password.id_for_label }}"
+                       placeholder="Enter your password"
+                       autocomplete="current-password"
+                       required>
+
+                {% if form.password.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="login-button">
+                Sign In
+            </button>
+
+        </form>
+
+        <div class="login-footer">
+            SmartExam Teacher Portal
+        </div>
+
+    </div>
 
 </div>
 
